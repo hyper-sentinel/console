@@ -12,7 +12,7 @@ interface AssetPrice {
   prevPrice: number | null;
 }
 
-type SortKey = "coin" | "price" | "change24h" | "volume24h" | "openInterest";
+type SortKey = "coin" | "price" | "change24h" | "volume24h" | "openInterest" | "fundingRate";
 
 // ── Top perps to display ──
 const TOP_COINS = [
@@ -274,6 +274,9 @@ export default function MarketsPane() {
                 <th className="text-right py-1.5 px-2 font-semibold cursor-pointer select-none" onClick={() => handleSort("openInterest")}>
                   OI<SortIcon col="openInterest" />
                 </th>
+                <th className="text-right py-1.5 px-2 font-semibold cursor-pointer select-none" onClick={() => handleSort("fundingRate")}>
+                  Funding<SortIcon col="fundingRate" />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -323,6 +326,12 @@ export default function MarketsPane() {
                     </td>
                     <td className="py-1.5 px-2 text-right font-mono" style={{ color: "var(--text-dim)" }}>
                       {asset.openInterest ? formatUsd(asset.openInterest) : "—"}
+                    </td>
+                    <td
+                      className="py-1.5 px-2 text-right font-mono font-medium"
+                      style={{ color: asset.fundingRate !== null && asset.fundingRate > 0 ? "var(--accent-green)" : asset.fundingRate !== null && asset.fundingRate < 0 ? "var(--accent-red)" : "var(--text-dim)" }}
+                    >
+                      {asset.fundingRate !== null ? `${(asset.fundingRate * 100).toFixed(4)}%` : "—"}
                     </td>
                   </tr>
                 );

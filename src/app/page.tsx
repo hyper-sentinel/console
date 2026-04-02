@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import Link from "next/link";
@@ -6,6 +7,7 @@ import {
   Zap, Shield, Brain, BarChart3, Globe, Lock,
   ChevronRight, Terminal, Layers, Cpu, ArrowRight,
   Wallet, TrendingUp, MessageSquare, Database,
+  Menu, X,
 } from "lucide-react";
 
 const FEATURES = [
@@ -107,116 +109,161 @@ const PRICING = [
 export default function LandingPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // If already logged in, offer console access via CTA (don't auto-redirect)
   const dashboardLink = user ? "/console" : "/login";
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
 
       {/* ── Nav ── */}
-      <nav className="px-8 py-5 border-b" style={{ borderColor: "var(--border)" }}>
-        <div style={{ maxWidth: "1152px", margin: "0 auto" }} className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, var(--accent-green), var(--accent-cyan))" }}>
-            <Zap size={16} color="#000" strokeWidth={3} />
-          </div>
-          <span className="text-lg font-bold tracking-tight">Sentinel</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}>
-            Docs
-          </a>
-          <a href="https://pypi.org/project/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}>
-            SDK
-          </a>
-          <a href="https://github.com/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}>
-            GitHub
-          </a>
-          {user ? (
-            <Link href="/console" className="btn-primary !py-2 !px-5 !text-sm">
-              Console <ChevronRight size={14} />
-            </Link>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/login" className="text-sm font-medium" style={{ color: "var(--accent-green)" }}>
-                Sign In
-              </Link>
-              <Link href="/signup" className="btn-primary !py-2 !px-5 !text-sm">
-                Get API Key
-              </Link>
+      <nav className="px-4 sm:px-8 py-4 sm:py-5 border-b" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, var(--accent-green), var(--accent-cyan))" }}>
+              <Zap size={16} color="#000" strokeWidth={3} />
             </div>
-          )}
+            <span className="text-lg font-bold tracking-tight">Sentinel</span>
+          </div>
+
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-6">
+            <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
+              Docs
+            </a>
+            <a href="https://pypi.org/project/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
+              SDK
+            </a>
+            <a href="https://github.com/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
+              GitHub
+            </a>
+            {user ? (
+              <Link href="/console" className="btn-primary !py-2 !px-5 !text-sm">
+                Console <ChevronRight size={14} />
+              </Link>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link href="/login" className="text-sm font-medium" style={{ color: "var(--accent-green)" }}>
+                  Sign In
+                </Link>
+                <Link href="/signup" className="btn-primary !py-2 !px-5 !text-sm">
+                  Get API Key
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden p-2 rounded-lg transition-colors"
+            style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
-        </div>
+
+        {/* Mobile menu dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-4 pt-4 border-t animate-slide-down" style={{ borderColor: "var(--border)" }}>
+            <div className="flex flex-col gap-3 max-w-6xl mx-auto">
+              <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
+                Docs
+              </a>
+              <a href="https://pypi.org/project/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
+                SDK
+              </a>
+              <a href="https://github.com/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
+                GitHub
+              </a>
+              <div className="flex gap-3 pt-2">
+                {user ? (
+                  <Link href="/console" className="btn-primary !py-2.5 !px-6 !text-sm flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    Console <ChevronRight size={14} />
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/login" className="btn-secondary !py-2.5 !px-6 !text-sm flex-1" onClick={() => setMobileMenuOpen(false)}>
+                      Sign In
+                    </Link>
+                    <Link href="/signup" className="btn-primary !py-2.5 !px-6 !text-sm flex-1" onClick={() => setMobileMenuOpen(false)}>
+                      Get API Key
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative px-8 pt-12 pb-10 text-center overflow-hidden">
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full opacity-[0.07] pointer-events-none"
-          style={{ background: "radial-gradient(circle, var(--accent-green) 0%, transparent 70%)" }} />
+      <section className="relative px-4 sm:px-8 pt-10 sm:pt-14 pb-8 sm:pb-10 text-center overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] sm:w-[800px] h-[400px] sm:h-[600px] rounded-full opacity-[0.07] pointer-events-none"
+            style={{ background: "radial-gradient(circle, var(--accent-green) 0%, transparent 70%)" }} />
 
-        <div className="relative" style={{ maxWidth: "768px", margin: "0 auto" }}>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono mb-5 animate-fade-in"
-            style={{ background: "rgba(0, 255, 136, 0.06)", border: "1px solid rgba(0, 255, 136, 0.15)", color: "var(--accent-green)" }}>
-            <Globe size={12} />
-            Web4 — AI-Native Trading Infrastructure
-          </div>
-
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-[1.1] mb-4 animate-fade-in">
-            The First Web4{" "}
-            <span className="gradient-text">Trading Terminal</span>
-          </h1>
-
-          <p className="text-base mb-6 leading-relaxed animate-fade-in-delay" style={{ color: "var(--text-secondary)", maxWidth: "640px", margin: "0 auto 24px" }}>
-            Your AI subscription is your identity. 62+ tools across Hyperliquid, Aster DEX, and Polymarket —
-            all through one API key. AI thinks. Blockchain executes. You direct.
-          </p>
-
-          <div className="flex items-center justify-center gap-4 animate-fade-in-delay-2">
-            <Link href={dashboardLink} className="btn-primary !text-base !py-3.5 !px-8">
-              <Cpu size={18} className="mr-2" />
-              Launch Terminal
-            </Link>
-            <a
-              href="https://api.hyper-sentinel.com/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary !text-base !py-3.5 !px-8"
-            >
-              View API Docs
-              <ArrowRight size={16} className="ml-2" />
-            </a>
-          </div>
-
-          {/* Quick SDK snippet */}
-          <div className="rounded-xl p-4 text-left font-mono text-sm leading-relaxed animate-fade-in-delay-2"
-            style={{ background: "var(--bg-panel)", border: "1px solid var(--border)", maxWidth: "512px", margin: "28px auto 0" }}>
-            <div className="flex items-center gap-2 mb-3 text-[10px] uppercase tracking-wider" style={{ color: "var(--text-dim)" }}>
-              <Terminal size={12} />
-              Quick Start
+          <div className="relative max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono mb-4 animate-fade-in"
+              style={{ background: "rgba(0, 255, 136, 0.06)", border: "1px solid rgba(0, 255, 136, 0.15)", color: "var(--accent-green)" }}>
+              <Globe size={12} />
+              Web4 — AI-Native Trading Infrastructure
             </div>
-            <p style={{ color: "var(--text-dim)" }}># Install</p>
-            <p><span style={{ color: "var(--accent-green)" }}>pip install</span> hyper-sentinel</p>
-            <br />
-            <p style={{ color: "var(--text-dim)" }}># Trade</p>
-            <p><span style={{ color: "var(--accent-purple)" }}>from</span> hyper_sentinel <span style={{ color: "var(--accent-purple)" }}>import</span> Sentinel</p>
-            <p>s = Sentinel(api_key=<span style={{ color: "var(--accent-yellow)" }}>&quot;sk-sentinel-xxx&quot;</span>)</p>
-            <p>s.trade.hl_order(<span style={{ color: "var(--accent-yellow)" }}>&quot;BTC&quot;</span>, <span style={{ color: "var(--accent-yellow)" }}>&quot;buy&quot;</span>, <span style={{ color: "var(--accent-cyan)" }}>100</span>)</p>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.1] mb-3 animate-fade-in">
+              The First Web4{" "}
+              <span className="gradient-text">Trading Terminal</span>
+            </h1>
+
+            <p className="text-sm sm:text-base mb-5 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay" style={{ color: "var(--text-secondary)" }}>
+              Your AI subscription is your identity. 62+ tools across Hyperliquid, Aster DEX, and Polymarket —
+              all through one API key. AI thinks. Blockchain executes. You direct.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-fade-in-delay-2">
+              <Link href={dashboardLink} className="btn-primary !text-base !py-3.5 !px-8 w-full sm:w-auto">
+                <Cpu size={18} className="mr-2" />
+                Launch Terminal
+              </Link>
+              <a
+                href="https://api.hyper-sentinel.com/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary !text-base !py-3.5 !px-8 w-full sm:w-auto"
+              >
+                View API Docs
+                <ArrowRight size={16} className="ml-2" />
+              </a>
+            </div>
+
+            {/* Quick SDK snippet */}
+            <div className="mt-6 sm:mt-8 max-w-lg mx-auto rounded-xl p-3 sm:p-4 text-left font-mono text-xs leading-relaxed animate-fade-in-delay-2"
+              style={{ background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center gap-2 mb-2 text-[10px] uppercase tracking-wider" style={{ color: "var(--text-dim)" }}>
+                <Terminal size={12} />
+                Quick Start
+              </div>
+              <p style={{ color: "var(--text-dim)" }}># Install</p>
+              <p><span style={{ color: "var(--accent-green)" }}>pip install</span> hyper-sentinel</p>
+              <p style={{ color: "var(--text-dim)", marginTop: "4px" }}># Trade</p>
+              <p><span style={{ color: "var(--accent-purple)" }}>from</span> hyper_sentinel <span style={{ color: "var(--accent-purple)" }}>import</span> Sentinel</p>
+              <p>s = Sentinel(api_key=<span style={{ color: "var(--accent-yellow)" }}>&quot;sk-sentinel-xxx&quot;</span>)</p>
+              <p>s.trade.hl_order(<span style={{ color: "var(--accent-yellow)" }}>&quot;BTC&quot;</span>, <span style={{ color: "var(--accent-yellow)" }}>&quot;buy&quot;</span>, <span style={{ color: "var(--accent-cyan)" }}>100</span>)</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── Features ── */}
-      <section className="px-8 py-14 border-t" style={{ borderColor: "var(--border)" }}>
-        <div style={{ maxWidth: "1024px", margin: "0 auto" }}>
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold mb-3">Everything in one API</h2>
+      <section className="px-4 sm:px-8 py-10 sm:py-14 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Everything in one API</h2>
             <p style={{ color: "var(--text-secondary)" }}>One key. Every exchange. Every chain. Every market.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {FEATURES.map((f) => (
               <div key={f.title} className="feature-card group">
                 <f.icon size={24} style={{ color: f.color }} className="mb-4" />
@@ -229,14 +276,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="px-8 py-14 border-t" style={{ borderColor: "var(--border)" }}>
-        <div style={{ maxWidth: "896px", margin: "0 auto" }}>
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold mb-3">Web4 Auth Stack</h2>
+      <section className="px-4 sm:px-8 py-14 sm:py-20 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Web4 Auth Stack</h2>
             <p style={{ color: "var(--text-secondary)" }}>Your AI key is your identity. No passwords. No wallets. Just paste and go.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-8">
             {[
               { step: "01", icon: Brain, title: "Sign in with AI", desc: "Paste your Claude, GPT, Gemini, or Grok API key. You're instantly authenticated.", color: "var(--accent-purple)" },
               { step: "02", icon: Wallet, title: "Connect exchanges", desc: "Add your Hyperliquid, Aster, Polymarket keys — encrypted in your vault. We never see them.", color: "var(--accent-cyan)" },
@@ -244,7 +291,7 @@ export default function LandingPage() {
             ].map((s) => (
               <div key={s.step} className="text-center">
                 <div className="text-xs font-mono font-bold mb-4" style={{ color: s.color }}>{s.step}</div>
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4"
                   style={{ background: `${s.color}10`, border: `1px solid ${s.color}30` }}>
                   <s.icon size={24} style={{ color: s.color }} />
                 </div>
@@ -257,14 +304,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pricing ── */}
-      <section className="px-8 py-14 border-t" style={{ borderColor: "var(--border)" }}>
-        <div style={{ maxWidth: "1024px", margin: "0 auto" }}>
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold mb-3">Simple, transparent pricing</h2>
-            <p style={{ color: "var(--text-secondary)" }}>Start free. Scale when you're ready.</p>
+      <section className="px-4 sm:px-8 py-14 sm:py-20 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Simple, transparent pricing</h2>
+            <p style={{ color: "var(--text-secondary)" }}>Start free. Scale when you&apos;re ready.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {PRICING.map((plan) => (
               <div
                 key={plan.name}
@@ -282,7 +329,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feat) => (
                     <li key={feat} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                      <Shield size={14} style={{ color: plan.color }} />
+                      <Shield size={14} style={{ color: plan.color, flexShrink: 0 }} />
                       {feat}
                     </li>
                   ))}
@@ -301,12 +348,12 @@ export default function LandingPage() {
       </section>
 
       {/* ── Venues ── */}
-      <section className="px-8 py-16 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="text-center" style={{ maxWidth: "896px", margin: "0 auto" }}>
+      <section className="px-4 sm:px-8 py-12 sm:py-16 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono uppercase tracking-wider mb-6" style={{ color: "var(--text-dim)" }}>
             Supported Execution Venues
           </p>
-          <div className="flex items-center justify-center gap-10 flex-wrap">
+          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap">
             {[
               { name: "Hyperliquid", icon: Zap, color: "var(--accent-cyan)" },
               { name: "Aster DEX", icon: Database, color: "var(--accent-purple)" },
@@ -314,7 +361,7 @@ export default function LandingPage() {
               { name: "Telegram", icon: MessageSquare, color: "var(--accent-blue)" },
               { name: "Discord", icon: MessageSquare, color: "var(--accent-purple)" },
             ].map((v) => (
-              <div key={v.name} className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--text-dim)" }}>
+              <div key={v.name} className="flex items-center gap-2 text-xs sm:text-sm font-medium" style={{ color: "var(--text-dim)" }}>
                 <v.icon size={16} style={{ color: v.color }} />
                 {v.name}
               </div>
@@ -324,8 +371,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="px-8 py-8 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="flex items-center justify-between text-xs" style={{ color: "var(--text-dim)", maxWidth: "1024px", margin: "0 auto" }}>
+      <footer className="px-4 sm:px-8 py-6 sm:py-8 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs" style={{ color: "var(--text-dim)" }}>
           <span>Sentinel Labs LLC · 2026</span>
           <div className="flex gap-6">
             <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">API Docs</a>

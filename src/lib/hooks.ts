@@ -509,3 +509,4 @@ export function useStrategyStatus() {
 export function useSentinelStatus() {
   return useToolQuery("sentinel_status", {}, { refetchInterval: 15000 });
 }
+
