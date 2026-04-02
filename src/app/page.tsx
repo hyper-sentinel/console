@@ -115,7 +115,8 @@ export default function LandingPage() {
     <div className="min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
 
       {/* ── Nav ── */}
-      <nav className="flex items-center justify-between px-8 py-5 border-b" style={{ borderColor: "var(--border)" }}>
+      <nav className="px-8 py-5 border-b" style={{ borderColor: "var(--border)" }}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, var(--accent-green), var(--accent-cyan))" }}>
             <Zap size={16} color="#000" strokeWidth={3} />
@@ -147,11 +148,12 @@ export default function LandingPage() {
             </div>
           )}
         </div>
+        </div>
       </nav>
 
       {/* ── Hero ── */}
       <section className="relative px-8 pt-24 pb-20 text-center overflow-hidden">
-        {/* Background glow */}
+        <div className="max-w-6xl mx-auto">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full opacity-[0.07] pointer-events-none"
           style={{ background: "radial-gradient(circle, var(--accent-green) 0%, transparent 70%)" }} />
 
@@ -203,6 +205,7 @@ export default function LandingPage() {
             <p>s = Sentinel(api_key=<span style={{ color: "var(--accent-yellow)" }}>&quot;sk-sentinel-xxx&quot;</span>)</p>
             <p>s.trade.hl_order(<span style={{ color: "var(--accent-yellow)" }}>&quot;BTC&quot;</span>, <span style={{ color: "var(--accent-yellow)" }}>&quot;buy&quot;</span>, <span style={{ color: "var(--accent-cyan)" }}>100</span>)</p>
           </div>
+        </div>
         </div>
       </section>
 
