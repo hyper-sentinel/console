@@ -116,7 +116,7 @@ export default function LandingPage() {
 
       {/* ── Nav ── */}
       <nav className="px-8 py-5 border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div style={{ maxWidth: "1152px", margin: "0 auto" }} className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, var(--accent-green), var(--accent-cyan))" }}>
             <Zap size={16} color="#000" strokeWidth={3} />
@@ -152,24 +152,24 @@ export default function LandingPage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative px-8 pt-24 pb-20 text-center overflow-hidden">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative px-8 pt-12 pb-10 text-center overflow-hidden">
+        {/* Background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full opacity-[0.07] pointer-events-none"
           style={{ background: "radial-gradient(circle, var(--accent-green) 0%, transparent 70%)" }} />
 
-        <div className="relative max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono mb-8 animate-fade-in"
+        <div className="relative" style={{ maxWidth: "768px", margin: "0 auto" }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono mb-5 animate-fade-in"
             style={{ background: "rgba(0, 255, 136, 0.06)", border: "1px solid rgba(0, 255, 136, 0.15)", color: "var(--accent-green)" }}>
             <Globe size={12} />
             Web4 — AI-Native Trading Infrastructure
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6 animate-fade-in">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-[1.1] mb-4 animate-fade-in">
             The First Web4{" "}
             <span className="gradient-text">Trading Terminal</span>
           </h1>
 
-          <p className="text-lg mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay" style={{ color: "var(--text-secondary)" }}>
+          <p className="text-base mb-6 leading-relaxed animate-fade-in-delay" style={{ color: "var(--text-secondary)", maxWidth: "640px", margin: "0 auto 24px" }}>
             Your AI subscription is your identity. 62+ tools across Hyperliquid, Aster DEX, and Polymarket —
             all through one API key. AI thinks. Blockchain executes. You direct.
           </p>
@@ -191,8 +191,8 @@ export default function LandingPage() {
           </div>
 
           {/* Quick SDK snippet */}
-          <div className="mt-16 max-w-lg mx-auto rounded-xl p-5 text-left font-mono text-sm leading-relaxed animate-fade-in-delay-2"
-            style={{ background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
+          <div className="rounded-xl p-4 text-left font-mono text-sm leading-relaxed animate-fade-in-delay-2"
+            style={{ background: "var(--bg-panel)", border: "1px solid var(--border)", maxWidth: "512px", margin: "28px auto 0" }}>
             <div className="flex items-center gap-2 mb-3 text-[10px] uppercase tracking-wider" style={{ color: "var(--text-dim)" }}>
               <Terminal size={12} />
               Quick Start
@@ -206,13 +206,12 @@ export default function LandingPage() {
             <p>s.trade.hl_order(<span style={{ color: "var(--accent-yellow)" }}>&quot;BTC&quot;</span>, <span style={{ color: "var(--accent-yellow)" }}>&quot;buy&quot;</span>, <span style={{ color: "var(--accent-cyan)" }}>100</span>)</p>
           </div>
         </div>
-        </div>
       </section>
 
       {/* ── Features ── */}
-      <section className="px-8 py-20 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
+      <section className="px-8 py-14 border-t" style={{ borderColor: "var(--border)" }}>
+        <div style={{ maxWidth: "1024px", margin: "0 auto" }}>
+          <div className="text-center mb-10">
             <h2 className="text-3xl font-bold mb-3">Everything in one API</h2>
             <p style={{ color: "var(--text-secondary)" }}>One key. Every exchange. Every chain. Every market.</p>
           </div>
@@ -230,8 +229,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="px-8 py-20 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="max-w-4xl mx-auto">
+      <section className="px-8 py-14 border-t" style={{ borderColor: "var(--border)" }}>
+        <div style={{ maxWidth: "896px", margin: "0 auto" }}>
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold mb-3">Web4 Auth Stack</h2>
             <p style={{ color: "var(--text-secondary)" }}>Your AI key is your identity. No passwords. No wallets. Just paste and go.</p>
@@ -245,7 +244,7 @@ export default function LandingPage() {
             ].map((s) => (
               <div key={s.step} className="text-center">
                 <div className="text-xs font-mono font-bold mb-4" style={{ color: s.color }}>{s.step}</div>
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4"
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
                   style={{ background: `${s.color}10`, border: `1px solid ${s.color}30` }}>
                   <s.icon size={24} style={{ color: s.color }} />
                 </div>
@@ -258,8 +257,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── Pricing ── */}
-      <section className="px-8 py-20 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="max-w-5xl mx-auto">
+      <section className="px-8 py-14 border-t" style={{ borderColor: "var(--border)" }}>
+        <div style={{ maxWidth: "1024px", margin: "0 auto" }}>
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold mb-3">Simple, transparent pricing</h2>
             <p style={{ color: "var(--text-secondary)" }}>Start free. Scale when you're ready.</p>
@@ -303,7 +302,7 @@ export default function LandingPage() {
 
       {/* ── Venues ── */}
       <section className="px-8 py-16 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="text-center" style={{ maxWidth: "896px", margin: "0 auto" }}>
           <p className="text-xs font-mono uppercase tracking-wider mb-6" style={{ color: "var(--text-dim)" }}>
             Supported Execution Venues
           </p>
@@ -326,7 +325,7 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="px-8 py-8 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="max-w-5xl mx-auto flex items-center justify-between text-xs" style={{ color: "var(--text-dim)" }}>
+        <div className="flex items-center justify-between text-xs" style={{ color: "var(--text-dim)", maxWidth: "1024px", margin: "0 auto" }}>
           <span>Sentinel Labs LLC · 2026</span>
           <div className="flex gap-6">
             <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">API Docs</a>
