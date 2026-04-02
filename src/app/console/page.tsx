@@ -28,12 +28,7 @@ export default function ConsoleDashboard() {
     ]).finally(() => setLoading(false));
   }, []);
 
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
-  };
+
 
   const tier = String(billing?.tier || "free");
   const apiCalls = billing?.monthly_api_calls != null ? Number(billing.monthly_api_calls) : null;
@@ -41,12 +36,12 @@ export default function ConsoleDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-10">
-      {/* Greeting */}
+      {/* Header */}
       <div className="mb-10 stagger-1">
         <h1 className="text-3xl font-semibold text-white mb-1">
-          {greeting()}, {user?.name || user?.email?.split("@")[0] || "Developer"}
+          Console
         </h1>
-        <p className="text-sm" style={{ color: "#71717A" }}>Overview of your Sentinel account</p>
+        <p className="text-sm" style={{ color: "#71717A" }}>API keys, usage, and account overview</p>
       </div>
 
       {/* Usage Snapshot */}
@@ -194,7 +189,7 @@ export default function ConsoleDashboard() {
 
       {/* Footer */}
       <footer className="mt-12 pt-6 border-t flex items-center justify-between text-xs stagger-6" style={{ borderColor: "rgba(255,255,255,0.04)", color: "#3F3F46" }}>
-        <span>Sentinel Labs LLC · 2026 · <em>Soli Deo Gloria</em></span>
+        <span>Sentinel Labs LLC · 2026</span>
         <div className="flex gap-4">
           <a href="https://api.hyper-sentinel.com/docs" target="_blank" className="hover:text-white transition">API Docs ↗</a>
           <a href="https://github.com/hyper-sentinel" target="_blank" className="hover:text-white transition">GitHub ↗</a>

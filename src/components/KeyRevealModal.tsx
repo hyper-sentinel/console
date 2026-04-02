@@ -65,7 +65,7 @@ export default function KeyRevealModal({ apiKey, secretKey, isNewUser, onDismiss
             margin: "0 auto 16px",
             fontSize: "24px",
           }}>
-            🔑
+            K
           </div>
           <h2 style={{
             margin: 0,
@@ -278,7 +278,7 @@ export default function KeyRevealModal({ apiKey, secretKey, isNewUser, onDismiss
           color: "#484f58",
           fontFamily: "'Inter', sans-serif",
         }}>
-          Sentinel Labs · Soli Deo Gloria
+          Sentinel Labs LLC · 2026
         </p>
       </div>
     </div>

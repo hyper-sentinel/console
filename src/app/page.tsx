@@ -324,7 +324,7 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer className="px-8 py-8 border-t" style={{ borderColor: "var(--border)" }}>
         <div className="max-w-5xl mx-auto flex items-center justify-between text-xs" style={{ color: "var(--text-dim)" }}>
-          <span>Sentinel Labs LLC · 2026 · <em>Soli Deo Gloria</em></span>
+          <span>Sentinel Labs LLC · 2026</span>
           <div className="flex gap-6">
             <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">API Docs</a>
             <a href="https://pypi.org/project/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">PyPI</a>
