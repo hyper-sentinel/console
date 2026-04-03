@@ -191,6 +191,14 @@ export default function SettingsPage() {
       setVaultStatus(`✓ ${exId.toUpperCase()} saved to vault`);
       setConfiguring(null);
       setTimeout(() => setVaultStatus(null), 3000);
+
+      // Signal to Copilot that wallets are now configured
+      const hasAnyExchange = Object.entries(updated.exchanges).some(([, ex]) =>
+        ex && Object.values(ex).some((v) => typeof v === "string" && v.trim()),
+      );
+      if (hasAnyExchange) {
+        localStorage.setItem("sentinel_wallets_configured", "true");
+      }
     } catch (err) {
       console.error("Vault save failed:", err);
       setVaultStatus(`✗ Failed to save ${exId.toUpperCase()}`);

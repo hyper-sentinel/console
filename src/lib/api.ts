@@ -255,23 +255,40 @@ class SentinelAPI {
   //  LLM CHAT — Multi-provider AI
   // ═══════════════════════════════════════════════════════════
 
+  // Frontend provider names → Go gateway provider names
+  private static PROVIDER_MAP: Record<string, string> = {
+    gemini: "google",
+    claude: "anthropic",
+    gpt: "openai",
+    grok: "xai",
+  };
+
+  /** Map frontend provider name (gemini/claude/gpt/grok) to gateway name (google/anthropic/openai/xai) */
+  mapProvider(provider: string | null): string {
+    if (!provider) return "";
+    return SentinelAPI.PROVIDER_MAP[provider] || provider;
+  }
+
   async llmChat(messages: { role: string; content: string }[], options?: {
     provider?: string;
     model?: string;
     temperature?: number;
   }) {
-    const provider = typeof window !== "undefined" ? localStorage.getItem("sentinel_provider") : null;
-    const aiKey = typeof window !== "undefined" && provider
-      ? localStorage.getItem(`sentinel_${provider}_key`)
+    const frontendProvider = typeof window !== "undefined" ? localStorage.getItem("sentinel_provider") : null;
+    const aiKey = typeof window !== "undefined" && frontendProvider
+      ? localStorage.getItem(`sentinel_${frontendProvider}_key`)
       : null;
+    const gatewayProvider = this.mapProvider(frontendProvider) || (options?.provider ? this.mapProvider(options.provider) : "");
 
     return this.fetchJSON("/api/v1/llm/chat", {
       method: "POST",
       body: JSON.stringify({
         messages,
         ai_key: aiKey,
-        provider: provider || options?.provider,
+        provider: gatewayProvider,
         ...options,
+        // Ensure mapped provider isn't overwritten by options.provider
+        ...(gatewayProvider ? { provider: gatewayProvider } : {}),
       }),
     });
   }

@@ -199,6 +199,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem(`sentinel_${decrypted.ai_provider.provider}_key`, decrypted.ai_provider.api_key);
                 localStorage.setItem("sentinel_provider", decrypted.ai_provider.provider);
               }
+              // Check if any exchanges are configured in vault
+              if (decrypted.exchanges) {
+                const hasExchange = Object.values(decrypted.exchanges).some(
+                  (ex) => ex && typeof ex === "object" && Object.values(ex).some((v) => typeof v === "string" && (v as string).trim()),
+                );
+                if (hasExchange) localStorage.setItem("sentinel_wallets_configured", "true");
+              }
             }
           }
         } catch {

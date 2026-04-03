@@ -244,12 +244,14 @@ export default function LandingPage() {
                 <Terminal size={12} />
                 Quick Start
               </div>
-              <p style={{ color: "var(--text-dim)" }}># Install</p>
-              <p><span style={{ color: "var(--accent-green)" }}>pip install</span> hyper-sentinel</p>
-              <p style={{ color: "var(--text-dim)", marginTop: "4px" }}># Trade</p>
-              <p><span style={{ color: "var(--accent-purple)" }}>from</span> hyper_sentinel <span style={{ color: "var(--accent-purple)" }}>import</span> Sentinel</p>
-              <p>s = Sentinel(api_key=<span style={{ color: "var(--accent-yellow)" }}>&quot;sk-sentinel-xxx&quot;</span>)</p>
-              <p>s.trade.hl_order(<span style={{ color: "var(--accent-yellow)" }}>&quot;BTC&quot;</span>, <span style={{ color: "var(--accent-yellow)" }}>&quot;buy&quot;</span>, <span style={{ color: "var(--accent-cyan)" }}>100</span>)</p>
+              <p style={{ color: "var(--text-dim)" }}># Install &amp; launch</p>
+              <p><span style={{ color: "var(--accent-green)" }}>$</span> pip install hyper-sentinel</p>
+              <p><span style={{ color: "var(--accent-green)" }}>$</span> sentinel</p>
+              <p style={{ color: "var(--text-dim)", marginTop: "6px" }}># You&apos;re in. Ask anything.</p>
+              <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> What&apos;s BTC at?</p>
+              <p style={{ color: "var(--text-secondary)" }}>BTC $66,492 (-2.3%) · Vol $30.2B</p>
+              <p style={{ marginTop: "2px" }}><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> Long 0.01 BTC on Hyperliquid</p>
+              <p style={{ color: "var(--accent-green)" }}>Filled: BUY 0.01 BTC @ $66,492</p>
             </div>
           </div>
         </div>
