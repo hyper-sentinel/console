@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback, Fragment } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { getSecretKey, decryptVault, encryptVault, type VaultConfig } from "@/lib/vault";
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -467,8 +468,8 @@ export default function CopilotPane() {
     const provider = user?.provider?.toUpperCase() || "AI";
     const wallets = checkWallets();
     const welcome = wallets
-      ? `Sentinel online · 62 tools armed · ${provider}\n\nI have access to live market data, can execute trades on **Hyperliquid**, **Aster DEX**, and **Polymarket**, and monitor social intelligence feeds. What would you like to do?`
-      : `Sentinel online · ${provider}\n\nTo unlock trading, configure your exchange wallets in **Settings > Exchanges**:\n\n- **Hyperliquid** — wallet address + private key\n- **Aster DEX** — API key + API secret\n- **Polymarket** — API key + API secret + passphrase\n\nMeanwhile, I can fetch live prices, news, trending tokens, macro data, and social intelligence.`;
+      ? `Sentinel online · 62 tools armed · ${provider}\n\nI have access to live market data, can execute trades on **Hyperliquid**, **Aster DEX**, and **Polymarket**, and monitor social intelligence feeds.\n\n**Commands:**\n\`add hl\` — Configure Hyperliquid\n\`add aster\` — Configure Aster DEX\n\`add polymarket\` — Configure Polymarket\n\`status\` — Show connections\n\`help\` — All commands\n\nOr just ask me anything.`
+      : `Welcome to Sentinel · ${provider}\n\nI'm your autonomous trading agent with 62+ tools. Configure your exchanges to unlock trading:\n\n\`add hl\` — Hyperliquid DEX (wallet address + private key)\n\`add aster\` — Aster DEX (API key + secret)\n\`add polymarket\` — Polymarket (API key + secret + passphrase)\n\n**Data commands (no setup needed):**\n\`add y2\` — Y2 news intelligence\n\`add fred\` — FRED economic data\n\`add elfa\` — Elfa AI social mentions\n\`status\` — Show all connections\n\`help\` — All commands\n\nMeanwhile, I can fetch live prices, news, trending tokens, macro data, and social intelligence.`;
 
     setMessages([{ id: genId(), role: "assistant", content: welcome, timestamp: ts() }]);
   }, [user, checkWallets]);
@@ -510,8 +511,151 @@ export default function CopilotPane() {
 
   // ── Core: send message ──────────────────────────────────────
 
+  // ── Inline command handler (add hl, add aster, etc.) ──
+  const handleCommand = useCallback(async (cmd: string): Promise<string | null | undefined> => {
+    const lower = cmd.toLowerCase().trim();
+
+    // help command
+    if (lower === "help") {
+      return `**Sentinel Commands:**\n\n**Exchange Setup:**\n\`add hl\` — Configure Hyperliquid (wallet + private key)\n\`add aster\` — Configure Aster DEX (API key + secret)\n\`add polymarket\` — Configure Polymarket (key + secret + passphrase)\n\n**Data Sources:**\n\`add y2\` — Y2 news sentiment\n\`add fred\` — FRED economic data (GDP, CPI, rates)\n\`add elfa\` — Elfa AI social mentions\n\n**System:**\n\`status\` — Show all connections\n\`clear\` — Clear chat history\n\`help\` — Show this help\n\nOr just ask me anything — I'll use the right tools automatically.`;
+    }
+
+    // status command
+    if (lower === "status") {
+      const sk = getSecretKey();
+      const exchanges: string[] = [];
+      if (sk) {
+        try {
+          const vaultData = localStorage.getItem("sentinel_vault");
+          if (vaultData) {
+            const { encrypted_blob, nonce } = JSON.parse(vaultData);
+            const vault = await decryptVault(encrypted_blob, nonce, sk);
+            if (vault.exchanges?.hl?.wallet_address) exchanges.push("⚡ **Hyperliquid** — " + (vault.exchanges.hl.private_key ? "Trading enabled" : "Read-only"));
+            if (vault.exchanges?.aster?.api_key) exchanges.push("🌟 **Aster DEX** — Connected");
+            if (vault.exchanges?.polymarket?.api_key) exchanges.push("🎲 **Polymarket** — Connected");
+            if (vault.data_sources?.fred?.api_key) exchanges.push("🏛️ **FRED** — Connected");
+            if (vault.data_sources?.y2?.api_key) exchanges.push("📰 **Y2 Intelligence** — Connected");
+            if (vault.data_sources?.elfa?.api_key) exchanges.push("🔮 **Elfa AI** — Connected");
+          }
+        } catch { /* vault decrypt failed */ }
+      }
+
+      const provider = localStorage.getItem("sentinel_provider")?.toUpperCase() || "None";
+      const alwaysOn = ["📈 **CoinGecko** — Always available", "📊 **DexScreener** — Always available"];
+      const allSources = [...alwaysOn, ...exchanges];
+      const notConfigured = [];
+      if (!exchanges.some(e => e.includes("Hyperliquid"))) notConfigured.push("⚡ Hyperliquid — \`add hl\`");
+      if (!exchanges.some(e => e.includes("Aster"))) notConfigured.push("🌟 Aster DEX — \`add aster\`");
+      if (!exchanges.some(e => e.includes("Polymarket"))) notConfigured.push("🎲 Polymarket — \`add polymarket\`");
+
+      return `**Sentinel Status**\n\n**LLM Provider:** ${provider}\n\n**Connected:**\n${allSources.join("\n")}\n${notConfigured.length > 0 ? `\n**Not configured:**\n${notConfigured.join("\n")}` : "\n✅ All exchanges configured!"}`;
+    }
+
+    // clear command
+    if (lower === "clear") {
+      clearChat();
+      return null; // null = handled but no response (clearChat resets messages)
+    }
+
+    // add command — show available services
+    if (lower === "add") {
+      return `**Available integrations:**\n\n**Exchanges (trading):**\n\`add hl\` — Hyperliquid DEX (wallet address + private key)\n\`add aster\` — Aster DEX (API key + secret)\n\`add polymarket\` — Polymarket (API key + secret + passphrase)\n\n**Data sources:**\n\`add y2\` — Y2 news intelligence\n\`add fred\` — FRED economic data\n\`add elfa\` — Elfa AI social mentions\n\n**Social:**\n\`add telegram\` — Telegram client API\n\`add discord\` — Discord bot token`;
+    }
+
+    // add <exchange> commands — trigger the pending form state
+    const addMatch = lower.match(/^add\s+(hl|hyperliquid|aster|polymarket|y2|fred|elfa|telegram|discord)$/);
+    if (addMatch) {
+      const service = addMatch[1];
+      const serviceMap: Record<string, { label: string; fields: { key: string; label: string; placeholder: string; secret?: boolean }[]; url: string; vaultPath: string }> = {
+        hl: { label: "Hyperliquid", url: "app.hyperliquid.xyz", vaultPath: "exchanges.hl", fields: [{ key: "wallet_address", label: "Wallet address", placeholder: "0x..." }, { key: "private_key", label: "Private key", placeholder: "0x... (for trading)", secret: true }] },
+        hyperliquid: { label: "Hyperliquid", url: "app.hyperliquid.xyz", vaultPath: "exchanges.hl", fields: [{ key: "wallet_address", label: "Wallet address", placeholder: "0x..." }, { key: "private_key", label: "Private key", placeholder: "0x... (for trading)", secret: true }] },
+        aster: { label: "Aster DEX", url: "asterdex.com", vaultPath: "exchanges.aster", fields: [{ key: "api_key", label: "API key", placeholder: "Your Aster API key" }, { key: "api_secret", label: "API secret", placeholder: "Your Aster secret", secret: true }] },
+        polymarket: { label: "Polymarket", url: "polymarket.com", vaultPath: "exchanges.polymarket", fields: [{ key: "api_key", label: "API key", placeholder: "Your Polymarket API key" }, { key: "api_secret", label: "API secret", placeholder: "Your secret", secret: true }, { key: "passphrase", label: "Passphrase", placeholder: "Your passphrase", secret: true }] },
+        y2: { label: "Y2 Intelligence", url: "y2.finance", vaultPath: "data_sources.y2", fields: [{ key: "api_key", label: "API key", placeholder: "Your Y2 API key" }] },
+        fred: { label: "FRED", url: "fred.stlouisfed.org/docs/api/api_key.html", vaultPath: "data_sources.fred", fields: [{ key: "api_key", label: "API key", placeholder: "Your FRED API key" }] },
+        elfa: { label: "Elfa AI", url: "elfa.ai", vaultPath: "data_sources.elfa", fields: [{ key: "api_key", label: "API key", placeholder: "Your Elfa API key" }] },
+        telegram: { label: "Telegram Client", url: "my.telegram.org", vaultPath: "data_sources.telegram", fields: [{ key: "api_id", label: "API ID", placeholder: "From my.telegram.org" }, { key: "api_hash", label: "API Hash", placeholder: "From my.telegram.org" }] },
+        discord: { label: "Discord", url: "discord.com/developers", vaultPath: "data_sources.discord", fields: [{ key: "bot_token", label: "Bot token", placeholder: "Your Discord bot token", secret: true }] },
+      };
+
+      const svc = serviceMap[service];
+      if (!svc) return `Unknown service: ${service}`;
+
+      // Set pending add state — the UI will render inline form fields
+      setPendingAdd({ service, ...svc });
+      return `**Configure ${svc.label}**\n\nGet your credentials at [${svc.url}](https://${svc.url})\n\nFill in the fields below and click **Save**. Your credentials are encrypted locally and never sent to our servers.`;
+    }
+
+    return undefined; // not a command
+  }, [clearChat]);
+
+  // Pending add exchange state
+  const [pendingAdd, setPendingAdd] = useState<{
+    service: string;
+    label: string;
+    fields: { key: string; label: string; placeholder: string; secret?: boolean }[];
+    vaultPath: string;
+  } | null>(null);
+
+  // Save exchange credentials to vault
+  const saveExchangeCredentials = useCallback(async (values: Record<string, string>) => {
+    const sk = getSecretKey();
+    if (!sk) {
+      setMessages((m) => [...m, { id: genId(), role: "assistant", content: "Error: No vault key found. Please log out and log back in.", timestamp: ts() }]);
+      setPendingAdd(null);
+      return;
+    }
+
+    // Load existing vault or create empty
+    let vault: VaultConfig = { exchanges: {}, data_sources: {} };
+    try {
+      const vaultData = localStorage.getItem("sentinel_vault");
+      if (vaultData) {
+        const { encrypted_blob, nonce } = JSON.parse(vaultData);
+        vault = await decryptVault(encrypted_blob, nonce, sk);
+      }
+    } catch { /* start fresh */ }
+
+    // Set values at the correct vault path
+    const path = pendingAdd?.vaultPath || "";
+    const [section, key] = path.split(".") as ["exchanges" | "data_sources", string];
+    if (section && key) {
+      if (!vault[section]) vault[section] = {} as VaultConfig["exchanges"] & VaultConfig["data_sources"];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vault[section] as any)[key] = values;
+    }
+
+    // Encrypt and save
+    const encrypted = await encryptVault(vault, sk);
+    localStorage.setItem("sentinel_vault", JSON.stringify(encrypted));
+
+    // Mark wallets as configured
+    if (section === "exchanges") {
+      localStorage.setItem("sentinel_wallets_configured", "true");
+      setHasWallets(true);
+    }
+
+    const label = pendingAdd?.label || "Service";
+    setMessages((m) => [...m, { id: genId(), role: "assistant", content: `✅ **${label}** configured successfully!\n\nCredentials encrypted and saved to your local vault. You can now use ${label} tools.\n\nType \`status\` to verify all connections.`, timestamp: ts() }]);
+    setPendingAdd(null);
+  }, [pendingAdd]);
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isThinking) return;
+
+    // ── Check for commands first ──
+    const cmdResult = await handleCommand(text);
+    if (cmdResult === null) return; // command handled with side effect (e.g. clear)
+    if (cmdResult !== undefined) {
+      // Command returned a response — show it without hitting LLM
+      setMessages((m) => [...m,
+        { id: genId(), role: "user", content: text, timestamp: ts() },
+        { id: genId(), role: "assistant", content: cmdResult, timestamp: ts() },
+      ]);
+      setInput("");
+      if (inputRef.current) { inputRef.current.style.height = "auto"; }
+      return;
+    }
 
     const userMsg: Message = { id: genId(), role: "user", content: text, timestamp: ts() };
     const assistantId = genId();
@@ -564,7 +708,7 @@ export default function CopilotPane() {
         return;
       }
 
-      // ── Standard path: LLM + tool calling ──
+      // ── Standard path: LLM + tool calling (SSE streaming) ──
       const frontendProvider = localStorage.getItem("sentinel_provider") || "";
       const aiKey = frontendProvider ? localStorage.getItem(`sentinel_${frontendProvider}_key`) : null;
       const gatewayProvider = GATEWAY_PROVIDER[frontendProvider] || frontendProvider;
@@ -585,8 +729,15 @@ export default function CopilotPane() {
       let finalText = "";
       let finalMeta: SentinelMeta | undefined;
 
+      // Streaming is supported for anthropic, openai, xai — not google (yet)
+      const canStream = ["anthropic", "openai", "xai"].includes(gatewayProvider);
+
       for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-        const res = await fetch(`${api.getBaseUrl()}/api/v1/llm/chat?stream=false`, {
+        // First round: stream tokens live. Follow-up rounds (tool results → LLM): non-streaming
+        // because we need the full text to parse ```tool blocks
+        const useStream = canStream && round === 0;
+
+        const res = await fetch(`${api.getBaseUrl()}/api/v1/llm/chat?stream=${useStream}`, {
           method: "POST",
           headers,
           body: JSON.stringify({ messages: history, ai_key: aiKey, provider: gatewayProvider, model }),
@@ -600,9 +751,59 @@ export default function CopilotPane() {
           throw new Error(errMsg);
         }
 
-        const data = await res.json();
-        const rawText = extractText(data, gatewayProvider);
-        finalMeta = data.sentinel_meta as SentinelMeta | undefined;
+        let rawText = "";
+
+        if (useStream && res.body) {
+          // ── SSE Streaming: read tokens word-by-word ──
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let streamText = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || ""; // keep incomplete line in buffer
+
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const jsonStr = line.slice(6).trim();
+              if (!jsonStr || jsonStr === "[DONE]") continue;
+
+              try {
+                const event = JSON.parse(jsonStr);
+                if (event.done) {
+                  // Final event with usage metadata
+                  if (event.usage) {
+                    finalMeta = {
+                      total_tokens: event.usage.total_tokens,
+                      platform_fee: event.usage.cost,
+                      latency_ms: event.usage.latency_ms,
+                      provider: gatewayProvider,
+                    };
+                  }
+                } else if (event.text) {
+                  streamText += event.text;
+                  // Update message in real-time (token by token)
+                  setMessages((m) => {
+                    const u = [...m];
+                    u[u.length - 1] = { ...u[u.length - 1], content: streamText };
+                    return u;
+                  });
+                }
+              } catch { /* skip malformed SSE events */ }
+            }
+          }
+          rawText = streamText;
+        } else {
+          // ── Non-streaming fallback (Google, or tool follow-up rounds) ──
+          const data = await res.json();
+          rawText = extractText(data, gatewayProvider);
+          finalMeta = data.sentinel_meta as SentinelMeta | undefined;
+        }
 
         const tools = parseToolCalls(rawText);
 
@@ -611,6 +812,7 @@ export default function CopilotPane() {
           break;
         }
 
+        // Has tool calls — execute them
         const displayText = stripToolBlocks(rawText);
         history.push({ role: "assistant", content: rawText });
         const resultParts: string[] = [];
@@ -837,7 +1039,67 @@ export default function CopilotPane() {
         </div>
       </div>
 
-      {/* Quick actions */}
+      {/* Inline exchange configuration form */}
+      {pendingAdd && (
+        <div className="px-4 py-3 shrink-0" style={{ borderTop: "1px solid rgba(0,255,136,0.1)" }}>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const values: Record<string, string> = {};
+              pendingAdd.fields.forEach((f) => {
+                values[f.key] = (formData.get(f.key) as string) || "";
+              });
+              await saveExchangeCredentials(values);
+            }}
+            className="max-w-md mx-auto space-y-2"
+          >
+            {pendingAdd.fields.map((field) => (
+              <div key={field.key}>
+                <label className="block text-[10px] font-mono mb-0.5" style={{ color: "#A1A1AA" }}>
+                  {field.label}
+                </label>
+                <input
+                  name={field.key}
+                  type={field.secret ? "password" : "text"}
+                  placeholder={field.placeholder}
+                  className="w-full text-xs px-3 py-2 rounded-lg outline-none transition-colors"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#E4E4E7",
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0,255,136,0.3)"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+            ))}
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                className="text-[11px] font-semibold px-4 py-1.5 rounded-lg transition-all hover:scale-105"
+                style={{
+                  background: "linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,229,255,0.1))",
+                  border: "1px solid rgba(0,255,136,0.3)",
+                  color: "#00FF88",
+                }}
+              >
+                Save to Vault
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingAdd(null)}
+                className="text-[11px] px-3 py-1.5 rounded-lg transition-colors hover:bg-white/5"
+                style={{ color: "#52525B" }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       {messages.length <= 1 && (
         <div className="px-4 py-2 flex gap-1.5 flex-wrap justify-center" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
           {quickActions.map((qa) => (

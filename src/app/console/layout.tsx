@@ -86,7 +86,32 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="h-screen flex overflow-hidden" style={{ background: "#0A0A0B", color: "#E4E4E7" }}>
+    <>
+      {/* ── Mobile Gate ── */}
+      <div
+        className="md:hidden min-h-screen flex flex-col items-center justify-center px-6 text-center"
+        style={{ background: "#0A0A0B", color: "#E4E4E7" }}
+      >
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: "rgba(139, 92, 246, 0.12)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+          <LayoutGrid size={28} style={{ color: "#A78BFA" }} />
+        </div>
+        <h2 className="text-xl font-bold mb-2">Desktop Required</h2>
+        <p className="text-sm mb-6 max-w-xs" style={{ color: "#A1A1AA" }}>
+          The Sentinel Console is built for desktop trading — multi-panel layouts, advanced charts, and keyboard shortcuts need a larger screen.
+        </p>
+        <Link
+          href="/"
+          className="btn-primary !text-sm !py-2.5 !px-6 mb-3"
+        >
+          Back to Home
+        </Link>
+        <p className="text-xs" style={{ color: "#52525B" }}>
+          Open this page on your laptop or desktop
+        </p>
+      </div>
+
+      {/* ── Desktop Console ── */}
+      <div className="hidden md:flex h-screen overflow-hidden" style={{ background: "#0A0A0B", color: "#E4E4E7" }}>
       {/* ── Sidebar ── */}
       <aside
         className="shrink-0 border-r flex flex-col h-screen transition-all duration-200"
@@ -233,5 +258,6 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
         </div>
       </main>
     </div>
+    </>
   );
 }

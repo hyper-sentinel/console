@@ -5,6 +5,7 @@ import { PANE_REGISTRY, CATEGORIES, DEFAULT_LAYOUTS, LayoutPreset } from "@/lib/
 import PaneGrid from "@/components/PaneGrid";
 import CommandPalette from "@/components/CommandPalette";
 import AuthGuard from "@/components/AuthGuard";
+import KeyRevealModal from "@/components/KeyRevealModal";
 import { useAuth, PROVIDER_INFO } from "@/lib/auth";
 import { useApiHealth } from "@/lib/hooks";
 import { CreditCard, PanelLeftClose, PanelLeft, Save } from "lucide-react";
@@ -12,7 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, pendingKeys, dismissKeys } = useAuth();
   const { data: health, isError: healthError } = useApiHealth();
   const {
     activePanes,
@@ -210,7 +211,7 @@ export default function DashboardPage() {
             </button>
             <span className="text-xs font-bold">Sentinel Terminal</span>
             <Link href="/console" className="text-[10px] px-2 py-1 rounded transition-colors" style={{ color: "var(--accent-purple, #A78BFA)", background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)" }}>Console</Link>
-            <span className="text-[11px] font-mono" style={{ color: "var(--text-dim)" }}>{time} UTC</span>
+            <span className="text-[11px] font-mono" style={{ color: "var(--text-dim)" }} suppressHydrationWarning>{time} UTC</span>
             <button
               onClick={() => setPaletteOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[11px] font-mono transition"
@@ -257,6 +258,16 @@ export default function DashboardPage() {
           <PaneGrid />
         </main>
       </div>
+
+      {/* Key Reveal Modal (Web4 handshake moment) */}
+      {pendingKeys && (
+        <KeyRevealModal
+          apiKey={pendingKeys.apiKey}
+          secretKey={pendingKeys.secretKey}
+          isNewUser={pendingKeys.isNewUser}
+          onDismiss={dismissKeys}
+        />
+      )}
 
       {/* Command Palette */}
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />

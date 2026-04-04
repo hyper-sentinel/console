@@ -5,7 +5,20 @@ description: Create distinctive, production-grade interfaces for the Sentinel tr
 
 # Sentinel Frontend Design Skill
 
+> **Enhanced with [frontend-design](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/frontend-design) plugin principles.**
+
 This skill guides creation of all frontend interfaces for the **Sentinel AI Trading Terminal**. Every component, page, and pane must feel like it belongs in a professional trading platform that competes with Hyperliquid, Axiom.trade, and TradingView.
+
+## Core Frontend Design Principles (from Anthropic's frontend-design plugin)
+
+When doing ANY frontend work, automatically:
+1. **Make bold aesthetic choices** — no safe, generic defaults
+2. **Choose distinctive typography and color palettes** — curated, not random
+3. **Add high-impact animations and visual details** — purposeful micro-interactions
+4. **Be context-aware** — a trading terminal ≠ a marketing page ≠ a docs site
+5. **Write production-ready code** — no placeholders, no lorem ipsum, no TODO styling
+
+> See the [Frontend Aesthetics Cookbook](https://github.com/anthropics/claude-cookbooks/blob/main/coding/prompting_for_frontend_aesthetics.ipynb) for additional guidance.
 
 ## Design Thinking — Sentinel's Aesthetic DNA
 

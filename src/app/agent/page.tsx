@@ -59,54 +59,130 @@ export default function AgentPage() {
     setInput("");
     setIsThinking(true);
 
+    // Add an empty assistant message for streaming into
+    const assistantId = `ai-${Date.now()}`;
+    setMessages(prev => [...prev, {
+      id: assistantId,
+      role: "assistant" as const,
+      content: "",
+      timestamp: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
+    }]);
+
     try {
-      // Build conversation history for context
+      // Provider mapping (frontend → gateway)
+      const GATEWAY_PROVIDER: Record<string, string> = {
+        gemini: "google", claude: "anthropic", gpt: "openai", grok: "xai",
+      };
+      const DEFAULT_MODELS: Record<string, string> = {
+        google: "gemini-2.0-flash", anthropic: "claude-sonnet-4-20250514",
+        openai: "gpt-4o", xai: "grok-3-mini-fast",
+      };
+
+      const frontendProvider = localStorage.getItem("sentinel_provider") || "";
+      const aiKey = frontendProvider ? localStorage.getItem(`sentinel_${frontendProvider}_key`) : null;
+      const gatewayProvider = GATEWAY_PROVIDER[frontendProvider] || frontendProvider;
+      const model = user?.model || DEFAULT_MODELS[gatewayProvider] || "";
+
+      if (!aiKey) throw new Error("No AI key configured. Log in with your provider API key first.");
+
+      const headers = api.getHeaders();
+      headers["X-AI-Key"] = aiKey;
+
+      // Build conversation history
       const history = messages
         .filter(m => m.role !== "system")
-        .slice(-10) // Last 10 messages for context
+        .slice(-10)
         .map(m => ({ role: m.role, content: m.content }));
 
-      // Call the real LLM through the API
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await api.call("chat", {
-        message: userInput,
-        mode: agentMode,
-        history: history,
-      }) as any;
+      const chatMessages = [
+        { role: "system", content: `You are Sentinel, an autonomous AI trading agent. Mode: ${agentMode}. You have 62+ tools for crypto trading, market data, and intelligence. Be concise and professional.` },
+        ...history,
+        { role: "user", content: userInput },
+      ];
 
-      const toolCalls: ToolCall[] = [];
-      
-      // Extract tool calls from the response if present
-      if (response?.tool_calls && Array.isArray(response.tool_calls)) {
-        for (const tc of response.tool_calls) {
-          toolCalls.push({
-            name: tc.name || tc.tool || "unknown",
-            args: tc.args || tc.arguments,
-            result: tc.result ? String(tc.result) : undefined,
-            status: "done",
-          });
+      // Use SSE streaming for supported providers
+      const canStream = ["anthropic", "openai", "xai"].includes(gatewayProvider);
+
+      const res = await fetch(`${api.getBaseUrl()}/api/v1/llm/chat?stream=${canStream}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ messages: chatMessages, ai_key: aiKey, provider: gatewayProvider, model }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(err.error || err.message || err.detail || `HTTP ${res.status}`);
+      }
+
+      let responseContent = "";
+
+      if (canStream && res.body) {
+        // SSE streaming — tokens appear word-by-word
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr || jsonStr === "[DONE]") continue;
+
+            try {
+              const event = JSON.parse(jsonStr);
+              if (!event.done && event.text) {
+                responseContent += event.text;
+                setMessages(prev => {
+                  const u = [...prev];
+                  u[u.length - 1] = { ...u[u.length - 1], content: responseContent };
+                  return u;
+                });
+              }
+            } catch { /* skip malformed */ }
+          }
+        }
+      } else {
+        // Non-streaming fallback (Google)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = await res.json() as any;
+        // Extract text based on provider format
+        if (gatewayProvider === "google") {
+          responseContent = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        } else if (gatewayProvider === "anthropic") {
+          responseContent = data?.content?.[0]?.text || "";
+        } else {
+          responseContent = data?.choices?.[0]?.message?.content || "";
         }
       }
 
-      const aiMsg: Message = {
-        id: `ai-${Date.now()}`,
-        role: "assistant",
-        content: response?.response || response?.message || response?.content || 
-                 (typeof response === "string" ? response : "I processed your request. Let me know if you need anything else."),
-        tools: toolCalls.length > 0 ? toolCalls : undefined,
-        timestamp: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
-      };
+      if (!responseContent) responseContent = "I processed your request.";
 
-      setMessages(prev => [...prev, aiMsg]);
+      setMessages(prev => {
+        const u = [...prev];
+        u[u.length - 1] = { ...u[u.length - 1], content: responseContent };
+        return u;
+      });
     } catch (error: unknown) {
       // Fallback to individual tool calls for specific requests
       const aiMsg = await handleDirectToolCall(userInput);
-      setMessages(prev => [...prev, aiMsg]);
+      setMessages(prev => {
+        // Replace the empty assistant message with the fallback
+        const u = [...prev];
+        u[u.length - 1] = aiMsg;
+        return u;
+      });
     }
 
     setIsThinking(false);
     inputRef.current?.focus();
-  }, [input, isThinking, agentMode, messages]);
+  }, [input, isThinking, agentMode, messages, user]);
 
   // Handle direct tool calls for specific user requests
   const handleDirectToolCall = async (userInput: string): Promise<Message> => {
