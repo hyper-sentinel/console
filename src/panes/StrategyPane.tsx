@@ -100,7 +100,7 @@ export default function StrategyPane() {
     return (
       <div className="flex items-center justify-center h-full p-4">
         <div className="text-center">
-          <p className="text-xs font-mono mb-2" style={{ color: "var(--accent-red)" }}>⚠ Strategy engine unavailable</p>
+          <p className="text-xs font-mono mb-2" style={{ color: "var(--accent-red)" }}>Strategy engine unavailable</p>
           <p className="text-[10px]" style={{ color: "var(--text-dim)" }}>Check API connection</p>
         </div>
       </div>

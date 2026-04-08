@@ -643,6 +643,11 @@ html, body {
 
 .react-grid-item {
   transition: all 200ms ease;
+  user-select: text;
+}
+
+.react-grid-item.react-draggable-dragging {
+  user-select: none;
 }
 
 .react-grid-item.react-grid-placeholder {

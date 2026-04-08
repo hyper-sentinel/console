@@ -68,11 +68,11 @@ export default function OrderEntryPane() {
           await api.sellPolymarket(polyMarketId, polyOutcome, parseFloat(size));
         }
       }
-      setResult(`✓ ${side.toUpperCase()} ${exchange === "poly" ? polyOutcome : size + " " + symbol} submitted`);
+      setResult(`OK: ${side.toUpperCase()} ${exchange === "poly" ? polyOutcome : size + " " + symbol} submitted`);
       setSize("");
       setPrice("");
     } catch (e) {
-      setResult(`✗ ${e instanceof Error ? e.message : "Order failed"}`);
+      setResult(`ERR: ${e instanceof Error ? e.message : "Order failed"}`);
     } finally {
       setSubmitting(false);
     }
@@ -325,8 +325,8 @@ export default function OrderEntryPane() {
         <div
           className="text-[10px] text-center py-1 rounded"
           style={{
-            background: result.startsWith("✓") ? "rgba(0,255,136,0.1)" : "rgba(255,68,68,0.1)",
-            color: result.startsWith("✓") ? "var(--accent-green)" : "var(--accent-red)",
+            background: result.startsWith("OK:") ? "rgba(0,255,136,0.1)" : "rgba(255,68,68,0.1)",
+            color: result.startsWith("OK:") ? "var(--accent-green)" : "var(--accent-red)",
           }}
         >
           {result}

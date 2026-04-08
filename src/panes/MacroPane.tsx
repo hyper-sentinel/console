@@ -66,7 +66,7 @@ export default function MacroPane() {
     return (
       <div className="flex items-center justify-center h-full p-4">
         <div className="text-center">
-          <p className="text-xs font-mono mb-2" style={{ color: "var(--accent-red)" }}>⚠ Failed to load macro data</p>
+          <p className="text-xs font-mono mb-2" style={{ color: "var(--accent-red)" }}>Failed to load macro data</p>
           <p className="text-[10px]" style={{ color: "var(--text-dim)" }}>Check API connection</p>
         </div>
       </div>

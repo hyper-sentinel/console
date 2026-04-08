@@ -211,7 +211,7 @@ export default function AccountPane() {
           <div className="space-y-1">
             {!history || (Array.isArray(history) && history.length === 0) ? (
               <div className="flex flex-col items-center justify-center h-32 gap-2">
-                <span style={{ fontSize: "24px" }}>📜</span>
+                <span className="text-2xl block" style={{ color: "var(--text-dim)", opacity: 0.4 }}>&mdash;</span>
                 <span className="text-[10px]" style={{ color: "var(--text-dim)" }}>No billing history yet</span>
               </div>
             ) : (

@@ -113,7 +113,7 @@ export default function OrderbookPane() {
     return (
       <div className="flex items-center justify-center h-full p-4">
         <div className="text-center">
-          <p className="text-xs font-mono mb-2" style={{ color: "var(--accent-red)" }}>⚠ Orderbook unavailable</p>
+          <p className="text-xs font-mono mb-2" style={{ color: "var(--accent-red)" }}>Orderbook unavailable</p>
           <p className="text-[10px]" style={{ color: "var(--text-dim)" }}>Check API keys and connection</p>
         </div>
       </div>

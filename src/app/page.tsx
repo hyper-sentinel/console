@@ -37,7 +37,7 @@ const FEATURES = [
   },
   {
     icon: Layers,
-    title: "Agent Swarm",
+    title: "Agent Swarm (Coming Soon)",
     desc: "Solo agent or 5-agent team. Analyst, Trader, Risk Manager — all coordinated.",
     color: "var(--accent-purple)",
   },
@@ -79,7 +79,7 @@ const PRICING = [
       "20% LLM markup",
       "0.06% maker / 0.04% taker",
       "10 API keys",
-      "Swarm + Team modes",
+      "Swarm + Team modes (coming soon)",
       "Priority support",
     ],
     cta: "Upgrade to Pro",
@@ -128,13 +128,16 @@ export default function LandingPage() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
+            <Link href="/docs" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
               Docs
-            </a>
+            </Link>
+            <Link href="/docs#api" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
+              API Reference
+            </Link>
             <a href="https://pypi.org/project/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
               SDK
             </a>
-            <a href="https://github.com/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
+            <a href="https://github.com/hyper-sentinel/hyper-sentinel-sdk" target="_blank" rel="noopener noreferrer" className="text-sm transition-colors hover:text-white" style={{ color: "var(--text-secondary)" }}>
               GitHub
             </a>
             {user ? (
@@ -168,13 +171,16 @@ export default function LandingPage() {
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pt-4 border-t animate-slide-down" style={{ borderColor: "var(--border)" }}>
             <div className="flex flex-col gap-3 max-w-6xl mx-auto">
-              <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
+              <Link href="/docs" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
                 Docs
-              </a>
+              </Link>
+              <Link href="/docs#api" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
+                API Reference
+              </Link>
               <a href="https://pypi.org/project/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
                 SDK
               </a>
-              <a href="https://github.com/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
+              <a href="https://github.com/hyper-sentinel/hyper-sentinel-sdk" target="_blank" rel="noopener noreferrer" className="text-sm py-2 transition-colors" style={{ color: "var(--text-secondary)" }}>
                 GitHub
               </a>
               <div className="flex gap-3 pt-2">
@@ -226,15 +232,13 @@ export default function LandingPage() {
                 <Cpu size={18} className="mr-2" />
                 Launch Terminal
               </Link>
-              <a
-                href="https://api.hyper-sentinel.com/docs"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/docs"
                 className="btn-secondary !text-base !py-3.5 !px-8 w-full sm:w-auto"
               >
                 View API Docs
                 <ArrowRight size={16} className="ml-2" />
-              </a>
+              </Link>
             </div>
 
             {/* Quick SDK snippet */}
@@ -377,9 +381,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs" style={{ color: "var(--text-dim)" }}>
           <span>Sentinel Labs LLC · 2026</span>
           <div className="flex gap-6">
-            <a href="https://api.hyper-sentinel.com/docs" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">API Docs</a>
+            <Link href="/docs" className="hover:text-white transition">Docs</Link>
+            <Link href="/docs#api" className="hover:text-white transition">API Reference</Link>
             <a href="https://pypi.org/project/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">PyPI</a>
-            <a href="https://github.com/hyper-sentinel" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">GitHub</a>
+            <a href="https://github.com/hyper-sentinel/hyper-sentinel-sdk" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">GitHub</a>
           </div>
         </div>
       </footer>

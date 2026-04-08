@@ -49,19 +49,19 @@ export default function DexTradingPane() {
       } else {
         await api.sellPolymarket(selectedMarket.id || selectedMarket.slug || "", "no", parseFloat(amount));
       }
-      setResult(`✓ ${side.toUpperCase()} position opened — $${amount}`);
+      setResult(`OK: ${side.toUpperCase()} position opened — $${amount}`);
       setAmount("");
       refetchPositions();
     } catch (e) {
-      setResult(`⚠ ${e instanceof Error ? e.message : "Order failed"}`);
+      setResult(`ERR: ${e instanceof Error ? e.message : "Order failed"}`);
     }
     setLoading(false);
   };
 
   const detectChain = (addr: string) => {
-    if (addr.startsWith("0x")) return "🔷 ETH";
-    if (addr.length >= 32 && !addr.startsWith("0x")) return "🟣 SOL";
-    return "❓ Unknown";
+    if (addr.startsWith("0x")) return "ETH";
+    if (addr.length >= 32 && !addr.startsWith("0x")) return "SOL";
+    return "Unknown";
   };
 
   return (
@@ -91,7 +91,7 @@ export default function DexTradingPane() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="🔍 Search prediction markets..."
+              placeholder="Search prediction markets..."
               className="w-full text-[10px] px-2 py-1.5 rounded font-mono mb-1"
               style={{ background: "var(--bg-primary)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
             />
@@ -188,7 +188,7 @@ export default function DexTradingPane() {
                   {loading ? "Placing..." : `Buy ${side.toUpperCase()}`}
                 </button>
                 {result && (
-                  <p className="text-[10px] text-center mt-1" style={{ color: result.startsWith("✓") ? "var(--accent-green)" : "var(--accent-red)" }}>
+                  <p className="text-[10px] text-center mt-1" style={{ color: result.startsWith("OK:") ? "var(--accent-green)" : "var(--accent-red)" }}>
                     {result}
                   </p>
                 )}
@@ -248,7 +248,7 @@ export default function DexTradingPane() {
             {!contractAddress && (
               <div className="flex-1 flex items-center justify-center text-center py-8">
                 <div>
-                  <div className="text-2xl mb-2">🔍</div>
+                  <div className="text-2xl mb-2" style={{ color: "var(--text-dim)", opacity: 0.4 }}>—</div>
                   <p className="text-[11px]" style={{ color: "var(--text-dim)" }}>Paste a contract address to start trading</p>
                   <p className="text-[9px] mt-1" style={{ color: "var(--text-dim)" }}>Supports Ethereum (0x...) and Solana addresses</p>
                 </div>

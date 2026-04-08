@@ -79,7 +79,7 @@ export default function OrdersPane() {
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
-            <span style={{ fontSize: "24px" }}>📋</span>
+            <span className="text-2xl block" style={{ color: "var(--text-dim)", opacity: 0.4 }}>—</span>
             <span className="text-[10px]" style={{ color: "var(--text-dim)" }}>No open orders</span>
           </div>
         ) : (

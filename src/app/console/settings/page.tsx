@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { getSecretKey } from "@/lib/vault";
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
@@ -10,6 +11,8 @@ export default function SettingsPage() {
   const [provider, setProvider] = useState("claude");
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showSecretKey, setShowSecretKey] = useState(false);
+  const [secretKeyCopied, setSecretKeyCopied] = useState(false);
 
   useEffect(() => {
     api.getBillingStatus().then((d) => setBilling(d as unknown as Record<string, unknown>)).catch(() => {});
@@ -132,20 +135,80 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Secret Recovery Key (future) */}
+      {/* Secret Recovery Key */}
       <section className="mb-8 stagger-4">
         <h2 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#52525B" }}>Secret Recovery Key</h2>
         <p className="text-xs mb-4" style={{ color: "#3F3F46" }}>
-          Your encrypted config vault passphrase. Use this to recover your account and API keys on any device.
+          Your vault passphrase. This is the <strong style={{ color: "#e4e4e7" }}>only way</strong> to recover your encrypted exchange keys on a new device. Save it somewhere safe.
         </p>
-        <div className="rounded-xl p-5 border" style={{ background: "#141416", borderColor: "rgba(255,255,255,0.04)" }}>
-          <div className="flex items-center gap-3 text-xs" style={{ color: "#52525B" }}>
-            <span className="text-lg">🔐</span>
-            <div>
-              <p className="font-semibold text-white text-sm">Coming Soon</p>
-              <p>Encrypted secret key for zero-trust config recovery — your keys, your vault.</p>
-            </div>
-          </div>
+        <div className="rounded-xl p-5 border" style={{ background: "#141416", borderColor: "rgba(139,92,246,0.12)" }}>
+          {(() => {
+            const sk = getSecretKey();
+            const sentinelKey = localStorage.getItem("sentinel_api_key") || "";
+            if (!sk && !sentinelKey) {
+              return (
+                <div className="text-xs" style={{ color: "#52525B" }}>
+                  <p>No keys found. Log in with your AI provider key to generate your Sentinel API key and vault passphrase.</p>
+                </div>
+              );
+            }
+            return (
+              <div className="space-y-4">
+                {/* Sentinel API Key */}
+                {sentinelKey && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider mb-1.5 font-semibold" style={{ color: "#8B5CF6" }}>Sentinel API Key</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 px-3 py-2 rounded-lg text-xs font-mono" style={{ background: "rgba(0,0,0,0.3)", color: "#e4e4e7" }}>
+                        {showSecretKey ? sentinelKey : sentinelKey.slice(0, 14) + "..." + sentinelKey.slice(-4)}
+                      </code>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(sentinelKey); setSecretKeyCopied(true); setTimeout(() => setSecretKeyCopied(false), 2000); }}
+                        className="px-3 py-2 rounded-lg text-[10px] font-medium transition"
+                        style={{ background: "rgba(139,92,246,0.1)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.2)" }}
+                      >
+                        {secretKeyCopied ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: "#3F3F46" }}>Use in X-API-Key header or SDK: SentinelClient(api_key=&quot;...&quot;)</p>
+                  </div>
+                )}
+
+                {/* Secret Key (Vault Passphrase) */}
+                {sk && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider mb-1.5 font-semibold" style={{ color: "#00ff88" }}>Vault Passphrase</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 px-3 py-2 rounded-lg text-xs font-mono" style={{ background: "rgba(0,0,0,0.3)", color: "#e4e4e7" }}>
+                        {showSecretKey ? sk : sk.slice(0, 12) + "..." + sk.slice(-4)}
+                      </code>
+                      <button
+                        onClick={() => setShowSecretKey(!showSecretKey)}
+                        className="px-3 py-2 rounded-lg text-[10px] font-medium transition"
+                        style={{ background: "rgba(255,255,255,0.04)", color: "#71717A", border: "1px solid rgba(255,255,255,0.06)" }}
+                      >
+                        {showSecretKey ? "Hide" : "Show"}
+                      </button>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(sk); setSecretKeyCopied(true); setTimeout(() => setSecretKeyCopied(false), 2000); }}
+                        className="px-3 py-2 rounded-lg text-[10px] font-medium transition"
+                        style={{ background: "rgba(0,255,136,0.08)", color: "#00ff88", border: "1px solid rgba(0,255,136,0.15)" }}
+                      >
+                        {secretKeyCopied ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: "#3F3F46" }}>This decrypts your exchange keys. Save it — we cannot recover it for you.</p>
+                  </div>
+                )}
+
+                {!sk && (
+                  <div className="text-xs" style={{ color: "#71717A" }}>
+                    <p>No vault passphrase found locally. If you have it saved, enter it in the Copilot: <code className="px-1 rounded" style={{ background: "rgba(139,92,246,0.1)", color: "#c4b5fd" }}>add vault</code></p>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </section>
 

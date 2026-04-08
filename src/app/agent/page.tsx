@@ -276,16 +276,24 @@ export default function AgentPage() {
             {(["solo", "swarm", "team"] as const).map(mode => (
               <button
                 key={mode}
-                onClick={() => setAgentMode(mode)}
-                className="px-4 py-2 rounded-md text-xs font-bold transition"
+                onClick={() => mode === "solo" ? setAgentMode(mode) : undefined}
+                className="px-4 py-2 rounded-md text-xs font-bold transition relative"
                 style={{
                   background: agentMode === mode ? "var(--accent-green)" : "transparent",
                   color: agentMode === mode ? "#000" : "var(--text-dim)",
+                  opacity: mode !== "solo" ? 0.5 : 1,
+                  cursor: mode !== "solo" ? "default" : "pointer",
                 }}
+                title={mode !== "solo" ? "Coming Soon — Phase 3 Roadmap" : undefined}
               >
                 {mode === "solo" && <><Bot size={14} className="inline mr-1" /> Solo</>}
                 {mode === "swarm" && <><Hexagon size={14} className="inline mr-1" /> Swarm</>}
                 {mode === "team" && <><Users size={14} className="inline mr-1" /> Team</>}
+                {mode !== "solo" && (
+                  <span className="absolute -top-1.5 -right-1 text-[7px] font-bold px-1 py-0.5 rounded" style={{ background: "rgba(139,92,246,0.2)", color: "#8B5CF6" }}>
+                    SOON
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -300,13 +308,13 @@ export default function AgentPage() {
           )}
           {agentMode === "swarm" && (
             <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-              <strong style={{ color: "var(--accent-cyan)" }}>Swarm Mode</strong> — 5 Agno agents: Captain routes to Analyst, Trader, Risk Manager, and Ops specialists.
+              <strong style={{ color: "var(--accent-cyan)" }}>Swarm Mode</strong> — Coming Soon. 5 Agno agents: Captain routes to Analyst, Trader, Risk Manager, and Ops specialists.
               <span className="tier-badge paid ml-2">PRO</span>
             </p>
           )}
           {agentMode === "team" && (
             <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-              <strong style={{ color: "var(--accent-purple)" }}>Team Mode</strong> — 3 Upsonic agents in coordinate mode with shared memory. Analyst → RiskManager → Trader pipeline.
+              <strong style={{ color: "var(--accent-purple)" }}>Team Mode</strong> — Coming Soon. 3 Upsonic agents in coordinate mode with shared memory. Analyst → RiskManager → Trader pipeline.
               <span className="tier-badge paid ml-2">PRO</span>
             </p>
           )}
