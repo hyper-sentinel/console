@@ -501,12 +501,6 @@ export function useAsterTradeHistory() {
 // ═══════════════════════════════════════════════════════════
 //  STRATEGY & SENTINEL
 // ═══════════════════════════════════════════════════════════
-
-export function useStrategyStatus() {
-  return useToolQuery("strategy_status", {}, { refetchInterval: 15000 });
-}
-
-export function useSentinelStatus() {
-  return useToolQuery("sentinel_status", {}, { refetchInterval: 15000 });
-}
+// Strategy hooks removed — StrategyPane now uses local StrategyRunner
+// instead of polling backend tools that returned 404.
 

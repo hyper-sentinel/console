@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import Link from "next/link";
 import {
   Zap, Shield, Brain, BarChart3, Globe, Lock,
-  ChevronRight, Terminal, Layers, Cpu, ArrowRight,
+  ChevronRight, ChevronDown, Terminal, Layers, Cpu, ArrowRight,
   Wallet, TrendingUp, MessageSquare, Database,
   Menu, X,
 } from "lucide-react";
@@ -110,6 +110,7 @@ export default function LandingPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [termExpanded, setTermExpanded] = useState(false);
 
   const dashboardLink = user ? "/console" : "/login";
 
@@ -241,21 +242,72 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Quick SDK snippet */}
-            <div className="mt-6 sm:mt-8 max-w-lg mx-auto rounded-xl p-3 sm:p-4 text-left font-mono text-xs leading-relaxed animate-fade-in-delay-2"
+            {/* Developer Preview Terminal */}
+            <div className="mt-6 sm:mt-8 max-w-xl mx-auto rounded-xl text-left font-mono text-xs leading-relaxed animate-fade-in-delay-2 overflow-hidden"
               style={{ background: "var(--bg-panel)", border: "1px solid var(--border)" }}>
-              <div className="flex items-center gap-2 mb-2 text-[10px] uppercase tracking-wider" style={{ color: "var(--text-dim)" }}>
-                <Terminal size={12} />
-                Quick Start
+                  {/* Terminal header bar */}
+                  <button
+                    onClick={() => setTermExpanded(!termExpanded)}
+                    className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 text-[10px] uppercase tracking-wider cursor-pointer hover:bg-white/[0.02] transition-colors"
+                    style={{ color: "var(--text-dim)", borderBottom: "1px solid var(--border)" }}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Terminal size={12} />
+                      Developer Preview
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide" style={{ background: "var(--accent-green)", color: "#000" }}>
+                        BETA
+                      </span>
+                    </span>
+                    {termExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  </button>
+
+                  {/* Terminal content */}
+                  <div className="px-3 sm:px-4 py-3 space-y-0.5">
+                    <p style={{ color: "var(--text-dim)" }}># Install &amp; launch</p>
+                    <p><span style={{ color: "var(--accent-green)" }}>$</span> pip install hyper-sentinel</p>
+                    <p><span style={{ color: "var(--accent-green)" }}>$</span> sentinel</p>
+
+                    <p style={{ color: "var(--text-dim)", marginTop: "8px" }}># Authenticate with any AI key</p>
+                    <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> Paste your API key: <span style={{ color: "var(--text-dim)" }}>sk-ant-api03-****</span></p>
+                    <p style={{ color: "var(--accent-green)" }}>Detected: Anthropic (Claude) · Tier: Free</p>
+
+                    <p style={{ color: "var(--text-dim)", marginTop: "8px" }}># Trade with natural language</p>
+                    <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> Long 0.1 BTC 10x on Hyperliquid</p>
+                    <p style={{ color: "var(--accent-green)" }}>Filled: BUY 0.1 BTC @ $68,241 · 10x Leverage</p>
+                    <p style={{ color: "var(--text-dim)", fontSize: "10px" }}>Notional: $6,824.10 · Margin: $682.41 · Fee: $4.09</p>
+
+                    {/* Expanded section */}
+                    {termExpanded && (
+                      <div className="animate-fade-in">
+                        <p style={{ color: "var(--text-dim)", marginTop: "10px" }}># Check positions across all venues</p>
+                        <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> /positions</p>
+                        <div className="mt-1 rounded-md px-2 py-1.5" style={{ background: "rgba(0,229,255,0.04)", border: "1px solid rgba(0,229,255,0.1)" }}>
+                          <p style={{ color: "var(--accent-cyan)", fontSize: "10px", marginBottom: "2px" }}>Hyperliquid Positions (1)</p>
+                          <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-3 text-[10px]">
+                            <span style={{ color: "#e5e5e5" }}>BTC</span>
+                            <span style={{ color: "var(--accent-green)" }}>LONG 0.1</span>
+                            <span>Entry $68,241</span>
+                            <span style={{ color: "var(--accent-green)" }}>+$142.30 (+2.08%)</span>
+                          </div>
+                        </div>
+
+                        <p style={{ color: "var(--text-dim)", marginTop: "10px" }}># Market intelligence</p>
+                        <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> What&apos;s the macro outlook?</p>
+                        <p style={{ color: "var(--text-secondary)" }}>Fed rate: 4.25% (hold) · CPI: 2.8% YoY · VIX: 16.2</p>
+                        <p style={{ color: "var(--text-secondary)" }}>Crypto fear/greed: 72 (Greed) · BTC dominance: 58.4%</p>
+
+                        <p style={{ color: "var(--text-dim)", marginTop: "10px" }}># Start algorithmic trading</p>
+                        <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> Run SMA crossover on ETH, $50 trades, 5m candles</p>
+                        <p style={{ color: "var(--accent-purple)" }}>Strategy started: SMA Crossover (9/21)</p>
+                        <p style={{ color: "var(--text-dim)", fontSize: "10px" }}>Symbol: ETH/USDT · Venue: Hyperliquid · Interval: 5m</p>
+                        <p style={{ color: "var(--text-dim)", fontSize: "10px" }}>Trade size: $50 · Leverage: 3x · TP: 1.0% · SL: -2.0%</p>
+
+                        <p style={{ color: "var(--text-dim)", marginTop: "10px" }}># 62+ tools available</p>
+                        <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> /tools</p>
+                        <p style={{ color: "var(--text-secondary)", fontSize: "10px" }}>Trading (13) · Market Data (16) · Intelligence (11) · Macro (3) · Social (9) · Wallet (6) · Algo (5)</p>
+                      </div>
+                    )}
               </div>
-              <p style={{ color: "var(--text-dim)" }}># Install &amp; launch</p>
-              <p><span style={{ color: "var(--accent-green)" }}>$</span> pip install hyper-sentinel</p>
-              <p><span style={{ color: "var(--accent-green)" }}>$</span> sentinel</p>
-              <p style={{ color: "var(--text-dim)", marginTop: "6px" }}># You&apos;re in. Ask anything.</p>
-              <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> What&apos;s BTC at?</p>
-              <p style={{ color: "var(--text-secondary)" }}>BTC $66,492 (-2.3%) · Vol $30.2B</p>
-              <p style={{ marginTop: "2px" }}><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> Long 0.01 BTC on Hyperliquid</p>
-              <p style={{ color: "var(--accent-green)" }}>Filled: BUY 0.01 BTC @ $66,492</p>
             </div>
           </div>
         </div>

@@ -30,7 +30,8 @@ export default function PlaygroundPage() {
     setMessages((prev) => [...prev, assistantMsg]);
 
     try {
-      const aiKey = typeof window !== "undefined" ? localStorage.getItem("sentinel_ai_key") || "" : "";
+      const provider = typeof window !== "undefined" ? localStorage.getItem("sentinel_provider") || "" : "";
+      const aiKey = typeof window !== "undefined" ? (provider ? localStorage.getItem(`sentinel_${provider}_key`) : localStorage.getItem("sentinel_ai_key")) || "" : "";
       const res = await fetch(`${api.getBaseUrl()}/api/v1/llm/chat`, {
         method: "POST",
         headers: {
@@ -102,7 +103,8 @@ export default function PlaygroundPage() {
 
   const providerLabel: Record<string, string> = {
     claude: "Claude",
-    openai: "GPT-4",
+    gpt: "GPT-4o",
+    openai: "GPT-4o",
     gemini: "Gemini",
     grok: "Grok",
   };

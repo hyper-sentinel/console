@@ -220,7 +220,7 @@ export default function UsagePage() {
                   { label: "LLM Markup", free: "40%", pro: "20%", ent: "10%" },
                   { label: "Maker Fee", free: "0.10%", pro: "0.06%", ent: "0.02%" },
                   { label: "Taker Fee", free: "0.07%", pro: "0.04%", ent: "0.01%" },
-                  { label: "Rate Limit", free: "300/min", pro: "1,000/min", ent: "5,000/min" },
+                  { label: "Rate Limit", free: "300/min", pro: "1,000/min", ent: "Unlimited" },
                 ].map((row) => (
                   <tr key={row.label} className="border-t" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
                     <td className="px-5 py-3 text-sm text-white">{row.label}</td>
