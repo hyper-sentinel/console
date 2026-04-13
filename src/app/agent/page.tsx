@@ -123,6 +123,131 @@ const AGENT_META: Record<string, { label: string; color: string }> = {
   captain: { label: "Captain", color: "#8B5CF6" },
 };
 
+// ── Tool parsing & execution ─────────────────────────────────
+
+interface ParsedTool { name: string; params: Record<string, unknown> }
+
+function parseToolCalls(text: string): ParsedTool[] {
+  const calls: ParsedTool[] = [];
+  const regex = /```tool\s*([\s\S]*?)```/g;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    try {
+      const p = JSON.parse(m[1].trim());
+      if (p.name) calls.push({ name: p.name, params: p.params || {} });
+    } catch { /* skip malformed */ }
+  }
+  return calls;
+}
+
+function stripToolBlocks(text: string): string {
+  return text.replace(/```tool\s*[\s\S]*?```\n?/g, "").trim();
+}
+
+async function directToolCall(name: string, params: Record<string, unknown>): Promise<unknown> {
+  switch (name) {
+    case "get_crypto_price": {
+      const id = String(params.coin_id || "bitcoin").toLowerCase();
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`);
+      const data = await res.json();
+      const coin = data[id];
+      if (!coin) throw new Error(`Coin "${id}" not found`);
+      return {
+        coin_id: id,
+        price: `$${coin.usd.toLocaleString()}`,
+        change_24h: `${coin.usd_24h_change?.toFixed(2)}%`,
+        market_cap: `$${(coin.usd_market_cap / 1e9).toFixed(2)}B`,
+        volume_24h: `$${(coin.usd_24h_vol / 1e9).toFixed(2)}B`,
+      };
+    }
+    case "get_crypto_top_n": {
+      const n = Number(params.n) || 10;
+      const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${n}&page=1&sparkline=false&price_change_percentage=24h`);
+      const coins = await res.json();
+      return coins.map((c: Record<string, unknown>) => ({
+        name: c.name, symbol: String(c.symbol).toUpperCase(),
+        price: `$${Number(c.current_price).toLocaleString()}`,
+        change_24h: `${Number(c.price_change_percentage_24h).toFixed(2)}%`,
+        market_cap: `$${(Number(c.market_cap) / 1e9).toFixed(1)}B`,
+      }));
+    }
+    case "search_crypto": {
+      const q = String(params.query || "");
+      const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      return (data.coins || []).slice(0, 10).map((c: Record<string, unknown>) => ({
+        id: c.id, name: c.name, symbol: c.symbol, market_cap_rank: c.market_cap_rank,
+      }));
+    }
+    default:
+      throw new Error(`Tool "${name}" requires the backend.`);
+  }
+}
+
+const MAX_TOOL_ROUNDS = 5;
+
+const TOOL_CATALOG = `
+TOOL CALLING FORMAT — when you need live data or want to execute an action, output EXACTLY:
+
+\`\`\`tool
+{"name": "tool_name", "params": {"key": "value"}}
+\`\`\`
+
+After each tool call you will receive the result, then respond to the user.
+
+AVAILABLE TOOLS (62+):
+
+Crypto Market Data (no wallet needed):
+  get_crypto_price — params: {coin_id: "bitcoin"} — live price, 24h change, volume, mcap
+  get_crypto_top_n — params: {n: 10} — top coins by market cap
+  search_crypto — params: {query: "..."} — search coins by name
+  get_crypto_chart — params: {coin_id: "bitcoin", days: 30} — price chart OHLCV
+
+Stock Data:
+  get_stock_price — params: {symbol: "AAPL"} — stock/ETF price, volume, day range
+
+Hyperliquid (wallet required):
+  get_hl_positions — no params — open perp positions
+  get_hl_account_info — no params — equity, margin, balances
+  get_hl_orderbook — params: {coin: "BTC"} — orderbook depth
+  get_hl_open_orders — no params — open orders
+  place_hl_order — params: {coin: "BTC", side: "buy", size: 0.01, order_type: "market"}
+  close_hl_position — params: {coin: "BTC"} — close position
+  cancel_hl_order — params: {coin: "BTC", order_id: "..."} — cancel order
+
+Aster DEX (wallet required):
+  aster_ticker — params: {symbol: "BTCUSDT"} — 24h stats
+  aster_positions — no params — open positions
+  aster_balance — no params — USDT balance
+  aster_place_order — params: {symbol: "BTCUSDT", side: "BUY", quantity: 100, order_type: "MARKET"}
+
+Polymarket (wallet required):
+  get_polymarket_markets — params: {limit: 10} — browse prediction markets
+  search_polymarket — params: {query: "..."} — search markets
+  get_polymarket_positions — no params — open positions
+  buy_polymarket — params: {token_id: "...", amount: 10} — buy shares
+
+Intelligence (no wallet needed):
+  get_news_sentiment — params: {query: "..."} — sentiment analysis
+  get_news_recap — no params — AI news summary
+  get_trending_tokens — no params — trending tokens
+  search_mentions — params: {query: "..."} — search social mentions
+  search_x — params: {query: "...", max_results: 10} — search X/Twitter
+
+Macro (no wallet needed):
+  get_economic_dashboard — no params — GDP, CPI, Fed rate, VIX, unemployment
+  get_fred_series — params: {series_id: "DGS10", limit: 10} — specific FRED data
+
+Telegram:
+  tg_read_channel — params: {channel: "...", limit: 10} — read messages
+  tg_list_channels — no params — list channels
+
+Discord:
+  discord_list_guilds — no params — list servers
+  discord_read_channel — params: {channel_id: 123, limit: 50} — read messages
+
+`;
+
 // ── Gateway helpers ──────────────────────────────────────────
 
 const GATEWAY_PROVIDER: Record<string, string> = {
@@ -145,69 +270,111 @@ async function llmCall(
   systemPrompt: string,
   userMessage: string,
   history: { role: string; content: string }[],
-  onToken: (text: string) => void
-): Promise<string> {
+  onToken: (text: string) => void,
+  onToolsUpdate?: (tools: ToolCall[]) => void
+): Promise<{ content: string; tools: ToolCall[] }> {
   const { aiKey, gatewayProvider, model } = getProviderConfig();
   if (!aiKey) throw new Error("No AI key configured.");
 
   const headers = api.getHeaders();
   headers["X-AI-Key"] = aiKey;
 
-  const messages = [
-    { role: "system", content: systemPrompt },
+  const internalHistory = [
+    { role: "system", content: systemPrompt + "\n\n" + TOOL_CATALOG },
     ...history,
     { role: "user", content: userMessage },
   ];
 
   const canStream = ["anthropic", "openai", "xai"].includes(gatewayProvider);
+  const allToolCalls: ToolCall[] = [];
 
-  const res = await fetch(`${api.getBaseUrl()}/api/v1/llm/chat?stream=${canStream}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ messages, ai_key: aiKey, provider: gatewayProvider, model }),
-  });
+  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+    const useStream = canStream && round === 0;
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-    throw new Error(err.error || err.message || err.detail || `HTTP ${res.status}`);
-  }
+    const res = await fetch(`${api.getBaseUrl()}/api/v1/llm/chat?stream=${useStream}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ messages: internalHistory, ai_key: aiKey, provider: gatewayProvider, model }),
+    });
 
-  let content = "";
-
-  if (canStream && res.body) {
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith("data:")) continue;
-        const jsonStr = trimmed.startsWith("data: ") ? trimmed.slice(6).trim() : trimmed.slice(5).trim();
-        if (!jsonStr || jsonStr === "[DONE]") continue;
-        try {
-          const event = JSON.parse(jsonStr);
-          const token = event.text ?? event.content ?? event.delta ?? "";
-          if (token && !event.done) {
-            content += token;
-            onToken(content);
-          }
-        } catch { /* skip */ }
-      }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || err.message || err.detail || `HTTP ${res.status}`);
     }
-  } else {
-    const data = await res.json();
-    if (gatewayProvider === "google") content = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    else if (gatewayProvider === "anthropic") content = data?.content?.[0]?.text || "";
-    else content = data?.choices?.[0]?.message?.content || "";
-    if (!content) content = data?.text || data?.content || data?.message || "";
+
+    let rawText = "";
+
+    if (useStream && res.body) {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const jsonStr = trimmed.startsWith("data: ") ? trimmed.slice(6).trim() : trimmed.slice(5).trim();
+          if (!jsonStr || jsonStr === "[DONE]") continue;
+          try {
+            const event = JSON.parse(jsonStr);
+            const token = event.text ?? event.content ?? event.delta ?? "";
+            if (token && !event.done) {
+              rawText += token;
+              onToken(rawText);
+            }
+          } catch { /* skip */ }
+        }
+      }
+    } else {
+      const data = await res.json();
+      if (gatewayProvider === "google") rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      else if (gatewayProvider === "anthropic") rawText = data?.content?.[0]?.text || "";
+      else rawText = data?.choices?.[0]?.message?.content || "";
+      if (!rawText) rawText = data?.text || data?.content || data?.message || "";
+      if (rawText) onToken(rawText);
+    }
+
+    // Parse tool calls from LLM response
+    const tools = parseToolCalls(rawText);
+    if (tools.length === 0) {
+      return { content: rawText || "No response received.", tools: allToolCalls };
+    }
+
+    // Has tool calls — execute them
+    const displayText = stripToolBlocks(rawText);
+    onToken(displayText || "Executing tools...");
+    internalHistory.push({ role: "assistant", content: rawText });
+    const resultParts: string[] = [];
+
+    for (const tool of tools) {
+      const tc: ToolCall = { name: tool.name, args: tool.params, status: "running" };
+      allToolCalls.push(tc);
+      onToolsUpdate?.([...allToolCalls]);
+
+      try {
+        let result: unknown;
+        try { result = await api.call(tool.name, tool.params); }
+        catch { result = await directToolCall(tool.name, tool.params); }
+        tc.status = "done";
+        const resultStr = typeof result === "string" ? result : JSON.stringify(result);
+        tc.result = resultStr.slice(0, 500);
+        resultParts.push(`[${tool.name}]\n${resultStr.slice(0, 3000)}`);
+      } catch (err) {
+        tc.status = "error";
+        tc.result = err instanceof Error ? err.message : "Failed";
+        resultParts.push(`[${tool.name} ERROR]\n${tc.result}`);
+      }
+      onToolsUpdate?.([...allToolCalls]);
+    }
+
+    internalHistory.push({ role: "user", content: `Tool results:\n\n${resultParts.join("\n\n")}` });
   }
 
-  return content || "No response received.";
+  return { content: "Done — tool results shown above.", tools: allToolCalls };
 }
 
 // ── Component ────────────────────────────────────────────────
@@ -268,12 +435,14 @@ export default function AgentPage() {
             ? `Previous analysis:\n${contextAccumulated}\n\nUser request: ${userInput}`
             : userInput;
 
-          const content = await llmCall(agent.prompt, prompt, history, (text) => {
+          const result = await llmCall(agent.prompt, prompt, history, (text) => {
             setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content: text }; return u; });
+          }, (tools) => {
+            setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], tools: [...tools] }; return u; });
           });
 
-          setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content }; return u; });
-          contextAccumulated += `\n\n[${meta.label}]: ${content}`;
+          setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content: result.content, tools: result.tools }; return u; });
+          contextAccumulated += `\n\n[${meta.label}]: ${result.content}`;
         }
       } else if (agentMode === "swarm") {
         // Swarm: Captain with multi-perspective routing
@@ -282,19 +451,23 @@ export default function AgentPage() {
         const id = `swarm-${Date.now()}`;
         setMessages(prev => [...prev, { id, role: "assistant", content: "", timestamp: ts(), agentLabel: meta.label, agentColor: meta.color }]);
 
-        const content = await llmCall(AGENT_PROMPTS.captain, userInput, history, (text) => {
+        const result = await llmCall(AGENT_PROMPTS.captain, userInput, history, (text) => {
           setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content: text }; return u; });
+        }, (tools) => {
+          setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], tools: [...tools] }; return u; });
         });
-        setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content }; return u; });
+        setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content: result.content, tools: result.tools }; return u; });
       } else {
         // Solo: single agent
         const id = `solo-${Date.now()}`;
         setMessages(prev => [...prev, { id, role: "assistant", content: "", timestamp: ts() }]);
 
-        const content = await llmCall(AGENT_PROMPTS.solo, userInput, history, (text) => {
+        const result = await llmCall(AGENT_PROMPTS.solo, userInput, history, (text) => {
           setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content: text }; return u; });
+        }, (tools) => {
+          setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], tools: [...tools] }; return u; });
         });
-        setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content }; return u; });
+        setMessages(prev => { const u = [...prev]; u[u.length - 1] = { ...u[u.length - 1], content: result.content, tools: result.tools }; return u; });
       }
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : "Request failed";

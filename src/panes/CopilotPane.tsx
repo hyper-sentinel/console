@@ -189,24 +189,8 @@ Crypto Market Data (no wallet needed):
   search_crypto — params: {query: "..."} — search coins by name
   get_crypto_chart — params: {coin_id: "bitcoin", days: 30} — price chart OHLCV
 
-Stock Data (YFinance):
+Stock Data:
   get_stock_price — params: {symbol: "AAPL"} — stock/ETF price, volume, day range
-  get_stock_info — params: {symbol: "AAPL"} — detailed company info, P/E, sector, financials
-  get_analyst_recs — params: {symbol: "AAPL"} — analyst buy/hold/sell and price targets
-  get_stock_news — params: {symbol: "AAPL"} — latest news articles for a ticker
-  get_stock_history — params: {symbol: "AAPL", period: "1mo"} — historical price data (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, max)
-  run_stock_analysis — params: {symbol: "AAPL"} — comprehensive quant analysis (valuation, technicals, risk, analyst targets)
-
-DexScreener (no key needed):
-  dexscreener_search — params: {query: "PEPE"} — search DEX pairs across all chains and DEXes
-  dexscreener_token_lookup — params: {token_address: "0x...", chain: "solana"} — all pairs for a token
-  dexscreener_trending — no params — hottest trending/boosted tokens across all DEXes
-  dexscreener_pair — params: {chain: "solana", pair_address: "..."} — detailed pair info
-
-Technical Analysis:
-  get_ta_indicators — params: {symbol: "BTC", interval: "5m", venue: "hl"} — SMA, EMA, RSI, MACD, Bollinger Bands
-  get_ta_signal — params: {symbol: "BTC", interval: "5m", venue: "hl"} — SMA crossover + RSI signal (bullish/bearish/neutral)
-  get_klines — params: {symbol: "BTC", interval: "5m", limit: 50, venue: "hl"} — raw OHLCV candlestick data
 
 Hyperliquid (wallet required):
   get_hl_positions — no params — open perp positions (crypto + TradFi)
@@ -240,16 +224,15 @@ Polymarket (wallet required):
   get_polymarket_price — params: {token_id: "..."} — current price/odds
   get_polymarket_orderbook — params: {token_id: "..."} — orderbook
 
-Portfolio:
-  get_portfolio_summary — no params — unified portfolio across all venues (equity, positions, PnL)
-  get_portfolio_risk — no params — risk analysis (concentration, leverage, venue allocation)
-
 Intelligence (no wallet needed):
   get_news_sentiment — params: {query: "..."} — sentiment analysis for a topic
   get_news_recap — no params — AI news summary
+  get_intelligence_reports — no params — AI research reports
   get_trending_tokens — no params — trending tokens from social intelligence
+  get_top_mentions — no params — top social mentions
   search_mentions — params: {query: "..."} — search social mentions across platforms
   get_trending_narratives — no params — trending narratives in crypto
+  get_token_news — params: {token: "..."} — token-specific news
   search_x — params: {query: "...", max_results: 10} — search X/Twitter
 
 Macro (no wallet needed):
@@ -270,13 +253,6 @@ Discord:
   discord_search_messages — params: {query: "...", channel_id: 123} — search messages
   discord_list_channels — params: {guild_id: 123} — list server channels
 
-Wallets / DEX Swaps:
-  list_wallets — no params — list configured wallets (SOL, ETH)
-  dex_buy_sol — params: {contract_address: "...", amount_sol: 0.1} — buy token via Jupiter (Solana)
-  dex_buy_eth — params: {contract_address: "...", amount_eth: 0.01} — buy token via Uniswap (Ethereum)
-
-Usage:
-  get_usage_summary — params: {period: "today"} — LLM usage, token counts, costs (today/week/month/all)
 
 `;
 
@@ -335,7 +311,7 @@ When performing stock/crypto analysis or "quant analysis", produce a COMPREHENSI
 10. TRADING PERSPECTIVE — key support/resistance levels, momentum signals
 11. FINAL VERDICT — BULLISH/NEUTRAL/BEARISH with reasoning
 
-Use section dividers (----) between each section. For quant analysis, ALWAYS use the run_stock_analysis tool to get comprehensive data in a single call.`;
+Use section dividers (----) between each section.`;
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -712,16 +688,9 @@ function detectDirectTool(text: string): DirectRoute[] | null {
     routes.push({ tool: "get_top_mentions", params: {}, label: "Top Mentions" });
   }
 
-  // DexScreener
-  const dexMatch = lower.match(/(?:dex|dexscreener|dexscreen)\s*(?:search|find)?\s+(.+)/i);
-  if (dexMatch) routes.push({ tool: "search_pairs", params: { query: dexMatch[1].trim() }, label: "DexScreener Search" });
-  if (/(boosted|trending)\s*(token|dex)/i.test(lower)) {
-    routes.push({ tool: "get_boosted_tokens", params: {}, label: "Boosted Tokens (DexScreener)" });
-  }
-
-  // Stock/Options (EODHD)
-  const stockMatch = lower.match(/(?:stock|equity|options?|fundamentals?)\s+(\w+)/i);
-  if (stockMatch) routes.push({ tool: "get_eod_history", params: { symbol: stockMatch[1].toUpperCase() + ".US" }, label: `Stock: ${stockMatch[1].toUpperCase()}` });
+  // Stock price shortcut
+  const stockMatch = lower.match(/(?:stock|equity)\s+(\w+)/i);
+  if (stockMatch) routes.push({ tool: "get_stock_price", params: { symbol: stockMatch[1].toUpperCase() }, label: `Stock: ${stockMatch[1].toUpperCase()}` });
 
   // HL TradFi price
   const tradfiMatch = lower.match(/(?:hl|hyperliquid)\s*(?:price|quote)\s+(\w+)/i);
@@ -849,7 +818,7 @@ export default function CopilotPane() {
 
     // tools command
     if (lower === "tools" || lower === "/tools") {
-      return `**Available Tools (62+)**\n\n| Category | Tools |\n|---|---|\n| **Crypto** | get_crypto_price, get_crypto_top_n, search_crypto, get_crypto_chart |\n| **Stocks** | get_stock_price, get_stock_info, get_analyst_recs, get_stock_news, get_stock_history, run_stock_analysis |\n| **DexScreener** | dexscreener_search, dexscreener_token_lookup, dexscreener_trending, dexscreener_pair |\n| **Technical Analysis** | get_ta_indicators, get_ta_signal, get_klines |\n| **Hyperliquid** | get_hl_positions, get_hl_account_info, get_hl_orderbook, get_hl_open_orders, place_hl_order, close_hl_position, cancel_hl_order, get_hl_tradfi_assets, get_hl_tradfi_price |\n| **Aster DEX** | aster_ticker, aster_positions, aster_balance, aster_orderbook, aster_klines, aster_place_order, aster_cancel_order, aster_cancel_all_orders, aster_set_leverage, aster_diagnose |\n| **Polymarket** | get_polymarket_markets, search_polymarket, get_polymarket_positions, buy_polymarket, sell_polymarket, get_polymarket_price, get_polymarket_orderbook |\n| **Portfolio** | get_portfolio_summary, get_portfolio_risk |\n| **Intelligence** | get_news_sentiment, get_news_recap, get_trending_tokens, search_mentions, get_trending_narratives, search_x |\n| **Macro** | get_economic_dashboard, get_fred_series, search_fred |\n| **Telegram** | tg_read_channel, tg_list_channels, tg_send_message, tg_search_messages |\n| **Discord** | discord_list_guilds, discord_read_channel, discord_send_message, discord_search_messages, discord_list_channels |\n| **Wallets** | list_wallets, dex_buy_sol, dex_buy_eth |\n| **Usage** | get_usage_summary |`;
+      return `**Available Tools (62+)**\n\n| Category | Tools |\n|---|---|\n| **Crypto** | get_crypto_price, get_crypto_top_n, get_crypto_batch_prices, search_crypto, get_crypto_chart |\n| **Stocks** | get_stock_price |\n| **Hyperliquid** | get_hl_positions, get_hl_account_info, get_hl_orderbook, get_hl_open_orders, get_hl_config, place_hl_order, close_hl_position, cancel_hl_order, get_hl_tradfi_assets, get_hl_tradfi_price |\n| **Aster DEX** | aster_ticker, aster_positions, aster_balance, aster_orderbook, aster_klines, aster_funding_rate, aster_exchange_info, aster_account_info, aster_open_orders, aster_place_order, aster_cancel_order, aster_cancel_all_orders, aster_set_leverage, aster_diagnose, aster_ping |\n| **Polymarket** | get_polymarket_markets, search_polymarket, get_polymarket_positions, buy_polymarket, sell_polymarket, get_polymarket_price, get_polymarket_orderbook, place_polymarket_limit, cancel_polymarket_order, cancel_all_polymarket_orders |\n| **Intelligence** | get_news_sentiment, get_news_recap, get_intelligence_reports, get_report_detail, get_trending_tokens, get_top_mentions, search_mentions, get_trending_narratives, get_token_news, search_x |\n| **Macro** | get_economic_dashboard, get_fred_series, search_fred |\n| **Telegram** | tg_read_channel, tg_list_channels, tg_send_message, tg_search_messages |\n| **Discord** | discord_list_guilds, discord_read_channel, discord_send_message, discord_search_messages, discord_list_channels |`;
     }
 
     // status command
