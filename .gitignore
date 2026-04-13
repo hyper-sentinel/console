@@ -29,6 +29,10 @@ yarn-error.log*
 *.swo
 .DS_Store
 
+# Auto-generated
+next-env.d.ts
+tsconfig.tsbuildinfo
+
 # Vercel
 .vercel
 .netlify/
