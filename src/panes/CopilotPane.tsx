@@ -740,7 +740,8 @@ export default function CopilotPane() {
   // Detect wallet configuration
   const checkWallets = useCallback(() => {
     if (typeof window === "undefined") return false;
-    return !!localStorage.getItem("sentinel_wallets_configured");
+    // Flag must exist AND vault must contain data — prevents stale flag after logout/vault wipe
+    return !!localStorage.getItem("sentinel_wallets_configured") && !!localStorage.getItem("sentinel_vault");
   }, []);
 
   const [hasWallets, setHasWallets] = useState(false);

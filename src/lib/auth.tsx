@@ -240,6 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     api.clearAuth();
     localStorage.removeItem("sentinel_user");
+    localStorage.removeItem("sentinel_wallets_configured");
     setPendingKeys(null);
   }, []);
 
