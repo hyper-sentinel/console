@@ -445,6 +445,47 @@ class SentinelAPI {
   }
 
   // ═══════════════════════════════════════════════════════════
+  //  STRATEGY — Algo Trading (v0.6.0)
+  // ═══════════════════════════════════════════════════════════
+
+  async strategyStatus() {
+    return this.fetchJSON("/api/v1/strategy/status");
+  }
+
+  async strategyStart() {
+    return this.fetchJSON("/api/v1/strategy/start", { method: "POST" });
+  }
+
+  async strategyStop() {
+    return this.fetchJSON("/api/v1/strategy/stop", { method: "POST" });
+  }
+
+  async strategyConfig(config: {
+    algo?: string; symbol?: string; venue?: string;
+    interval?: string; trade_usd?: number; leverage?: number;
+  }) {
+    return this.fetchJSON("/api/v1/strategy/config", {
+      method: "POST",
+      body: JSON.stringify(config),
+    });
+  }
+
+  async strategySetAlgo(name: string, params?: Record<string, unknown>) {
+    return this.fetchJSON("/api/v1/strategy/algo", {
+      method: "POST",
+      body: JSON.stringify({ algo: name, params }),
+    });
+  }
+
+  async listAlgos() {
+    return this.fetchJSON("/api/v1/algos");
+  }
+
+  async algoInfo(name: string) {
+    return this.fetchJSON(`/api/v1/algos/${name}`);
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  SYSTEM
   // ═══════════════════════════════════════════════════════════
 

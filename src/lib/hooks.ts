@@ -499,8 +499,34 @@ export function useAsterTradeHistory() {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  STRATEGY & SENTINEL
+//  STRATEGY — Algo Trading (v0.6.0)
 // ═══════════════════════════════════════════════════════════
-// Strategy hooks removed — StrategyPane now uses local StrategyRunner
-// instead of polling backend tools that returned 404.
+
+export function useStrategyStatus(options?: { enabled?: boolean; refetchInterval?: number }) {
+  return useQuery({
+    queryKey: ["strategy", "status"],
+    queryFn: () => api.strategyStatus(),
+    enabled: options?.enabled ?? true,
+    refetchInterval: options?.refetchInterval ?? 5000,
+    retry: 1,
+  });
+}
+
+export function useAlgoList() {
+  return useQuery({
+    queryKey: ["strategy", "algos"],
+    queryFn: () => api.listAlgos(),
+    staleTime: 300000,
+    retry: 1,
+  });
+}
+
+export function useAlgoInfo(name: string) {
+  return useQuery({
+    queryKey: ["strategy", "algo", name],
+    queryFn: () => api.algoInfo(name),
+    enabled: !!name,
+    staleTime: 300000,
+  });
+}
 
