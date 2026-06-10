@@ -11,7 +11,7 @@ const SECTIONS = [
     content: [
       {
         heading: "What is Sentinel?",
-        text: "Sentinel is an autonomous AI trading terminal that unifies Hyperliquid, Aster DEX, and Polymarket under one interface. Bring your own LLM key (Claude, GPT, Gemini, Grok) and the AI agent executes trades using 62+ backend tools.",
+        text: "Sentinel is an autonomous AI trading terminal that unifies Hyperliquid and Aster DEX under one interface. Bring your own LLM key (Claude, GPT, Gemini, Grok) and the AI agent executes trades and runs quant analysis using 54 backend tools.",
       },
       {
         heading: "Quick Start",
@@ -43,7 +43,7 @@ Body: { "ai_key": "sk-ant-...", "provider": "anthropic" }
 
 Response: {
   "token": "eyJhbG...",        // JWT for session
-  "api_key": "sent-live-xxx",  // Your Sentinel API key
+  "api_key": "sk-sentinel-xxx", // Your Sentinel API key
   "secret": "correct-horse-..." // Vault encryption key
 }`,
       },
@@ -65,7 +65,6 @@ Response: {
         heading: "Commands",
         code: `add hl          Configure Hyperliquid
 add aster       Configure Aster DEX
-add polymarket  Configure Polymarket
 add fred        FRED economic data
 add y2          Y2 news intelligence
 add elfa        Elfa AI social mentions
@@ -80,51 +79,56 @@ clear           Clear chat history`,
 > Show my positions
 > Analyze ETH macro outlook
 > What are the top trending tokens?
-> Search Polymarket for "Bitcoin ETF"`,
+> Run TA indicators on SOL`,
       },
     ],
   },
   {
     id: "tools",
-    title: "Tools (62+)",
+    title: "Tools (54)",
     content: [
       {
-        heading: "Trading Tools",
+        heading: "Trading",
         code: `place_hl_order      — Place market/limit on Hyperliquid
 close_hl_position   — Close entire HL position
-cancel_hl_order     — Cancel order by OID
-aster_place_order   — Place order on Aster DEX
-aster_set_leverage  — Set leverage (1-125x)
-buy_polymarket      — Buy prediction market shares
-sell_polymarket     — Sell shares
-place_polymarket_limit — Limit order on Polymarket`,
+get_hl_positions    — Open HL positions with P&L
+get_hl_orderbook    — Hyperliquid order book
+aster_ticker        — Aster 24h ticker
+aster_klines        — Aster candlestick data
+aster_positions     — Aster open positions`,
+      },
+      {
+        heading: "Quant & Analytics",
+        code: `get_ta_indicators      — Technical indicators (RSI, MACD, ...)
+get_ta_signal          — Aggregated TA buy/sell signal
+get_ml_signals         — ML-driven directional signals
+get_options_analysis   — Options metrics & flow
+get_timeseries_forecast — Forecast a price series
+get_portfolio_risk     — Portfolio risk breakdown
+get_risk_metrics       — Sharpe, drawdown, volatility
+run_stock_analysis     — Full equity analysis
+list_algos · strategy_start · strategy_stop · strategy_status`,
       },
       {
         heading: "Market Data",
         code: `get_crypto_price    — Price, 24h change, volume, mcap
 get_crypto_top_n    — Top N coins by market cap
-get_crypto_chart    — OHLCV candlestick data
-get_stock_price     — Stock/ETF price data
-get_hl_orderbook    — Hyperliquid orderbook
-get_hl_positions    — Open HL positions
-aster_klines        — Aster candlestick data
-aster_ticker        — 24h ticker stats`,
+search_crypto       — Search coins by name/symbol
+get_stock_price     — Stock/ETF price
+get_stock_info      — Company info, sector, P/E
+get_analyst_recs    — Analyst consensus
+dexscreener_search  — Search DEX pairs`,
       },
       {
-        heading: "Intelligence",
-        code: `get_news_recap         — AI news summary
-get_news_sentiment     — Sentiment analysis
-get_trending_tokens    — Trending tokens (Elfa)
-get_top_mentions       — Top social mentions
-search_mentions        — Search mentions by query
+        heading: "Intelligence & Macro",
+        code: `get_news_recap          — AI news summary
+get_news_sentiment      — Sentiment analysis
+get_trending_tokens     — Trending tokens (Elfa)
 get_trending_narratives — Hot narratives
-search_x               — X/Twitter search`,
-      },
-      {
-        heading: "Macro Economics",
-        code: `get_economic_dashboard — GDP, CPI, Fed rate, unemployment, VIX
-get_fred_series        — Specific FRED series data
-search_fred            — Search FRED datasets`,
+search_mentions         — Search social mentions
+search_x                — X/Twitter search
+get_economic_dashboard  — GDP, CPI, Fed rate, VIX
+get_fred_series · search_fred — FRED economic data`,
       },
     ],
   },
@@ -140,7 +144,7 @@ search_fred            — Search FRED datasets`,
         heading: "Interactive Terminal",
         code: `$ sentinel
 
-Sentinel v0.3.16 · 62 tools · Online
+Sentinel v0.8.1 · 54 tools · Online
 > What's the BTC price?
 BTC $66,857.00 (-0.85%) · Vol $28.4B · MCap $1.32T
 
@@ -171,18 +175,18 @@ Builder fee: $0.67
 Authorization: Bearer <jwt_token>
 
 # Or API key header
-X-API-Key: sent-live-xxxxxxxxxxxx`,
+X-API-Key: sk-sentinel-xxxxxxxx`,
       },
       {
         heading: "Key Endpoints",
         code: `POST   /auth/ai-key           Auth with LLM key
 POST   /auth/keys             Generate API key
-GET    /api/v1/tools          List all 62 tools
+GET    /api/v1/tools          List all tools
 POST   /api/v1/tools/{name}   Call a specific tool
-POST   /api/v1/llm/chat       AI chat (SSE streaming)
-GET    /api/v1/billing/status  Billing tier info
+POST   /api/v1/llm/chat       AI chat (metered, SSE streaming)
+GET    /api/v1/billing/status  Billing/usage tier info
 GET    /api/v1/billing/usage   Usage statistics
-POST   /api/v1/billing/subscribe  Stripe checkout`,
+GET    /api/v1/billing/usdc/balance  USDC credit balance`,
       },
       {
         heading: "Example: Get BTC Price",
@@ -206,8 +210,8 @@ POST   /api/v1/billing/subscribe  Stripe checkout`,
     title: "Pricing",
     content: [
       {
-        heading: "Tiers",
-        text: "All tiers get access to all 62+ tools. Revenue comes from usage, not feature gates.",
+        heading: "Pay-as-you-go",
+        text: "No subscription. Every tool is available to everyone. You pay only for what you use: a markup on AI (LLM) calls routed through the gateway, plus a small on-chain builder fee on trades. Lower markup/fee tiers are usage-based.",
       },
     ],
   },
@@ -216,24 +220,24 @@ POST   /api/v1/billing/subscribe  Stripe checkout`,
 const PRICING_TIERS = [
   {
     name: "Free",
-    price: "$0",
-    period: "/mo",
-    features: ["All 62+ tools", "40% LLM markup", "0.10% maker / 0.07% taker", "300 req/min"],
+    price: "40%",
+    period: "LLM markup",
+    features: ["All 54 tools", "Pay-as-you-go — no subscription", "0.10% maker / 0.07% taker", "300 req/min"],
     accent: "var(--text-dim)",
   },
   {
     name: "Pro",
-    price: "$100",
-    period: "/mo",
-    features: ["All 62+ tools", "20% LLM markup", "0.06% maker / 0.04% taker", "1,000 req/min", "Priority support"],
+    price: "20%",
+    period: "LLM markup",
+    features: ["All 54 tools", "Pay-as-you-go — no subscription", "0.06% maker / 0.04% taker", "1,000 req/min"],
     accent: "var(--accent-green)",
     highlight: true,
   },
   {
     name: "Enterprise",
-    price: "$1,000",
-    period: "/mo",
-    features: ["All 62+ tools", "10% LLM markup", "0.02% maker / 0.01% taker", "Unlimited requests", "Dedicated support"],
+    price: "10%",
+    period: "LLM markup",
+    features: ["All 54 tools", "Pay-as-you-go — no subscription", "0.02% maker / 0.01% taker", "Unlimited requests"],
     accent: "var(--accent-purple)",
   },
 ];
@@ -271,7 +275,7 @@ export default function DocsPage() {
             Console
           </Link>
           <a
-            href="https://api.hyper-sentinel.com/api/v1/tools"
+            href={`${process.env.NEXT_PUBLIC_API_URL || "https://api.hyper-sentinel.com"}/api/v1/tools`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs transition-colors hover:opacity-80"
@@ -314,7 +318,7 @@ export default function DocsPage() {
             </h1>
             <p className="text-sm leading-relaxed max-w-xl" style={{ color: "var(--text-secondary)" }}>
               Everything you need to build with the Sentinel trading terminal.
-              62+ tools, 3 venues, 4 LLM providers, one API.
+              54 tools, 2 trading venues, 4 LLM providers, one API.
             </p>
             <div className="flex gap-2 pt-2">
               <Link
