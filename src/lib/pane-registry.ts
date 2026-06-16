@@ -114,14 +114,6 @@ export const PANE_REGISTRY: Record<string, PaneConfig> = {
     tier: "free", category: "intelligence", description: "Discord server monitoring",
   },
 
-  // Tools
-  strategy: {
-    id: "strategy", title: "Strategy", icon: Zap,
-    component: () => import("@/panes/StrategyPane"),
-    defaultSize: { w: 3, h: 3 }, minSize: { w: 2, h: 2 },
-    tier: "free", category: "tools", description: "Algo strategies + DCA engine",
-  },
-
   // Market Overview
   markets: {
     id: "markets", title: "Markets", icon: BarChart3,

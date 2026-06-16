@@ -13,48 +13,15 @@ export default function BillingPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const currentTier = (billing?.tier as string) || "free";
+  const paymentStatus = (billing?.payment_status as string) || "active";
+  const paymentFailed = paymentStatus === "payment_failed" || paymentStatus === "payment_action_required";
 
-  const plans = [
-    {
-      id: "free",
-      name: "Free",
-      price: "$0",
-      period: "/mo",
-      description: "Pay-as-you-go with higher fees",
-      features: ["300 req/min rate limit", "40% LLM markup", "0.10% maker / 0.07% taker", "All 62+ tools", "Community support"],
-      color: "#00FF88",
-      cta: currentTier === "free" ? "Current Plan" : "Downgrade",
-    },
-    {
-      id: "pro",
-      name: "Pro",
-      price: "$100",
-      period: "/mo",
-      description: "For serious traders and builders",
-      features: ["1,000 req/min rate limit", "20% LLM markup", "0.06% maker / 0.04% taker", "Priority execution", "Email support"],
-      color: "#8B5CF6",
-      cta: currentTier === "pro" ? "Current Plan" : currentTier === "enterprise" ? "Downgrade" : "Upgrade",
-      popular: true,
-    },
-    {
-      id: "enterprise",
-      name: "Enterprise",
-      price: "$1,000",
-      period: "/mo",
-      description: "Maximum throughput, minimum fees",
-      features: ["Unlimited rate limit", "10% LLM markup", "0.02% maker / 0.01% taker", "Dedicated support", "Custom integrations"],
-      color: "#FBBF24",
-      cta: currentTier === "enterprise" ? "Current Plan" : "Upgrade",
-    },
-  ];
-
-  const handleUpgrade = async (planId: string) => {
-    if (planId === currentTier) return;
+  const handleAddPayment = async () => {
     try {
-      const result = await api.createCheckout(planId) as Record<string, string>;
-      if (result?.url) {
-        window.open(result.url, "_blank");
+      const result = (await api.createCheckout("")) as Record<string, string>;
+      const url = result?.checkout_url || result?.url;
+      if (url) {
+        window.open(url, "_blank");
       } else {
         alert("Checkout session created. Check your email for the payment link.");
       }
@@ -65,101 +32,66 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-8 py-10">
+    <div className="max-w-3xl mx-auto px-8 py-10">
       <div className="mb-8 stagger-1">
         <h1 className="text-2xl font-semibold text-white mb-1">Billing</h1>
-        <p className="text-sm" style={{ color: "#71717A" }}>Manage your subscription and payment methods</p>
+        <p className="text-sm" style={{ color: "#71717A" }}>Pay-as-you-go — no subscriptions, no tiers</p>
       </div>
 
       {loading ? (
         <div className="text-center py-20 text-sm" style={{ color: "#52525B" }}>Loading billing info...</div>
       ) : (
         <>
-          {/* Current Plan Summary */}
-          <div className="rounded-xl p-6 border mb-8 flex items-center justify-between stagger-2" style={{ background: "#1A1A1E", borderColor: "rgba(255,255,255,0.06)" }}>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#52525B" }}>Current Plan</p>
-              <p className="text-xl font-bold text-white">{currentTier.charAt(0).toUpperCase() + currentTier.slice(1)}</p>
-              <p className="text-xs mt-1" style={{ color: "#71717A" }}>
-                {billing?.monthly_api_calls != null ? `${Number(billing.monthly_api_calls).toLocaleString()} API calls this month` : ""}
-              </p>
+          {/* Pay-as-you-go card */}
+          <div className="rounded-xl p-8 border mb-8 stagger-2" style={{ background: "#141416", borderColor: "rgba(139,92,246,0.25)", boxShadow: "0 0 30px rgba(139,92,246,0.08)" }}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">💳</span>
+              <p className="text-lg font-semibold text-white">Pay-as-you-go</p>
             </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold font-mono" style={{ color: plans.find((p) => p.id === currentTier)?.color }}>
-                {plans.find((p) => p.id === currentTier)?.price}
-                <span className="text-sm font-normal" style={{ color: "#71717A" }}>/mo</span>
-              </p>
-            </div>
+            <p className="text-3xl font-bold font-mono text-white mb-4">
+              20%<span className="text-sm font-normal ml-2" style={{ color: "#71717A" }}>markup on LLM provider costs</span>
+            </p>
+            <ul className="space-y-2 mb-6">
+              {[
+                "Billed monthly in arrears via Stripe",
+                "No upfront fees · no subscriptions",
+                "Flat 1,000 req/min · all tools included",
+                "Billed monthly in arrears — no upfront fees",
+              ].map((f, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "#A1A1AA" }}>
+                  <span style={{ color: "#8B5CF6" }}>✓</span> {f}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={handleAddPayment}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.3)" }}
+            >
+              {paymentFailed ? "Update Payment Method →" : "Add Payment Method →"}
+            </button>
           </div>
 
-          {/* Plans Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 stagger-3">
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className="relative rounded-xl p-6 border transition-all"
-                style={{
-                  background: plan.id === currentTier ? "#1A1A1E" : "#141416",
-                  borderColor: plan.id === currentTier ? `${plan.color}30` : "rgba(255,255,255,0.06)",
-                  boxShadow: plan.id === currentTier ? `0 0 30px ${plan.color}10` : "none",
-                }}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] px-3 py-0.5 rounded-full font-bold" style={{
-                    background: "linear-gradient(135deg, #8B5CF6, #7C3AED)",
-                    color: "white",
-                  }}>
-                    POPULAR
-                  </span>
-                )}
-
-                <p className="text-lg font-semibold text-white mb-1">{plan.name}</p>
-                <p className="text-3xl font-bold font-mono text-white mb-1">
-                  {plan.price}<span className="text-sm font-normal" style={{ color: "#71717A" }}>{plan.period}</span>
-                </p>
-                <p className="text-xs mb-5" style={{ color: "#71717A" }}>{plan.description}</p>
-
-                <ul className="space-y-2 mb-6">
-                  {plan.features.map((f, i) => (
-                    <li key={i} className="flex items-center gap-2 text-xs" style={{ color: "#A1A1AA" }}>
-                      <span style={{ color: plan.color }}>✓</span> {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => handleUpgrade(plan.id)}
-                  disabled={plan.id === currentTier}
-                  className="w-full py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
-                  style={{
-                    background: plan.id === currentTier ? "rgba(255,255,255,0.04)" : `${plan.color}15`,
-                    color: plan.id === currentTier ? "#52525B" : plan.color,
-                    border: `1px solid ${plan.id === currentTier ? "rgba(255,255,255,0.06)" : `${plan.color}25`}`,
-                  }}
-                >
-                  {plan.cta}
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Payment Methods / USDC */}
-          <div className="rounded-xl p-6 border stagger-4" style={{ background: "#1A1A1E", borderColor: "rgba(255,255,255,0.06)" }}>
-            <h3 className="text-sm font-semibold text-white mb-4">Payment</h3>
+          {/* Usage + payment summary */}
+          <div className="rounded-xl p-6 border stagger-3" style={{ background: "#1A1A1E", borderColor: "rgba(255,255,255,0.06)" }}>
+            <h3 className="text-sm font-semibold text-white mb-4">This Month</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-lg p-4 border" style={{ background: "#141416", borderColor: "rgba(255,255,255,0.04)" }}>
-                <p className="text-[10px] uppercase font-semibold mb-1" style={{ color: "#52525B" }}>Stripe</p>
-                <p className="text-sm text-white">Credit card billing via Stripe</p>
-                <p className="text-xs mt-1" style={{ color: "#71717A" }}>Managed by subscription</p>
+                <p className="text-[10px] uppercase font-semibold mb-1" style={{ color: "#52525B" }}>API Calls</p>
+                <p className="text-lg font-mono font-bold text-white">
+                  {billing?.monthly_api_calls != null ? Number(billing.monthly_api_calls).toLocaleString() : "0"}
+                </p>
               </div>
               <div className="rounded-lg p-4 border" style={{ background: "#141416", borderColor: "rgba(255,255,255,0.04)" }}>
-                <p className="text-[10px] uppercase font-semibold mb-1" style={{ color: "#52525B" }}>USDC Balance</p>
+                <p className="text-[10px] uppercase font-semibold mb-1" style={{ color: "#52525B" }}>Platform Fees</p>
                 <p className="text-lg font-mono font-bold text-white">
-                  ${billing?.usdc_balance != null ? Number(billing.usdc_balance).toFixed(2) : "0.00"}
+                  {(billing?.platform_fees as string) || "$0.00"}
                 </p>
-                <p className="text-xs mt-1" style={{ color: "#71717A" }}>On-chain prepaid credits</p>
               </div>
             </div>
+            <p className="text-xs mt-4" style={{ color: paymentFailed ? "#F87171" : "#71717A" }}>
+              Payment status: <span className="font-mono">{paymentStatus}</span>
+            </p>
           </div>
         </>
       )}

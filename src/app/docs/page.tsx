@@ -11,7 +11,7 @@ const SECTIONS = [
     content: [
       {
         heading: "What is Sentinel?",
-        text: "Sentinel is an autonomous AI trading terminal that unifies Hyperliquid and Aster DEX under one interface. Bring your own LLM key (Claude, GPT, Gemini, Grok) and the AI agent executes trades and runs quant analysis using 54 backend tools.",
+        text: "Sentinel is an autonomous AI trading terminal that unifies Hyperliquid and Aster DEX under one interface. Bring your own LLM key (Claude, GPT, Gemini, Grok) and the AI agent executes trades and runs quant analysis using 69 backend tools.",
       },
       {
         heading: "Quick Start",
@@ -85,7 +85,7 @@ clear           Clear chat history`,
   },
   {
     id: "tools",
-    title: "Tools (54)",
+    title: "Tools (69)",
     content: [
       {
         heading: "Trading",
@@ -144,7 +144,7 @@ get_fred_series · search_fred — FRED economic data`,
         heading: "Interactive Terminal",
         code: `$ sentinel
 
-Sentinel v0.8.1 · 54 tools · Online
+Sentinel v0.8.8 · 69 tools · Online
 > What's the BTC price?
 BTC $66,857.00 (-0.85%) · Vol $28.4B · MCap $1.32T
 
@@ -184,9 +184,8 @@ POST   /auth/keys             Generate API key
 GET    /api/v1/tools          List all tools
 POST   /api/v1/tools/{name}   Call a specific tool
 POST   /api/v1/llm/chat       AI chat (metered, SSE streaming)
-GET    /api/v1/billing/status  Billing/usage tier info
-GET    /api/v1/billing/usage   Usage statistics
-GET    /api/v1/billing/usdc/balance  USDC credit balance`,
+GET    /api/v1/billing/status  Billing/usage status
+GET    /api/v1/billing/usage   Usage statistics`,
       },
       {
         heading: "Example: Get BTC Price",
@@ -211,7 +210,7 @@ GET    /api/v1/billing/usdc/balance  USDC credit balance`,
     content: [
       {
         heading: "Pay-as-you-go",
-        text: "No subscription. Every tool is available to everyone. You pay only for what you use: a markup on AI (LLM) calls routed through the gateway, plus a small on-chain builder fee on trades. Lower markup/fee tiers are usage-based.",
+        text: "No subscriptions, no tiers. Every tool is available to everyone. You pay only for what you use: a flat 20% markup on AI (LLM) calls routed through the gateway, plus a 0.01% on-chain builder fee on trades. Billed monthly in arrears via Stripe.",
       },
     ],
   },
@@ -219,26 +218,12 @@ GET    /api/v1/billing/usdc/balance  USDC credit balance`,
 
 const PRICING_TIERS = [
   {
-    name: "Free",
-    price: "40%",
-    period: "LLM markup",
-    features: ["All 54 tools", "Pay-as-you-go — no subscription", "0.10% maker / 0.07% taker", "300 req/min"],
-    accent: "var(--text-dim)",
-  },
-  {
-    name: "Pro",
+    name: "Pay-as-you-go",
     price: "20%",
     period: "LLM markup",
-    features: ["All 54 tools", "Pay-as-you-go — no subscription", "0.06% maker / 0.04% taker", "1,000 req/min"],
-    accent: "var(--accent-green)",
-    highlight: true,
-  },
-  {
-    name: "Enterprise",
-    price: "10%",
-    period: "LLM markup",
-    features: ["All 54 tools", "Pay-as-you-go — no subscription", "0.02% maker / 0.01% taker", "Unlimited requests"],
+    features: ["All 69 tools · 8 providers", "No subscriptions · no tiers", "0.01% maker / 0.01% taker", "1,000 req/min", "Billed monthly via Stripe"],
     accent: "var(--accent-purple)",
+    highlight: true,
   },
 ];
 
@@ -318,7 +303,7 @@ export default function DocsPage() {
             </h1>
             <p className="text-sm leading-relaxed max-w-xl" style={{ color: "var(--text-secondary)" }}>
               Everything you need to build with the Sentinel trading terminal.
-              54 tools, 2 trading venues, 4 LLM providers, one API.
+              69 tools, 2 trading venues, 8 LLM providers, one API.
             </p>
             <div className="flex gap-2 pt-2">
               <Link

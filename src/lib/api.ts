@@ -227,16 +227,16 @@ class SentinelAPI {
     return this.fetchJSON("/api/v1/billing/history");
   }
 
-  async subscribe(plan: "pro" | "enterprise"): Promise<{ url: string }> {
-    return this.fetchJSON<{ url: string }>(`/api/v1/billing/subscribe?plan=${plan}`, {
+  // Pay-as-you-go: plan is ignored by the gateway; kept optional for compatibility.
+  async subscribe(_plan: string = ""): Promise<{ url: string; checkout_url?: string }> {
+    return this.fetchJSON<{ url: string; checkout_url?: string }>(`/api/v1/billing/subscribe`, {
       method: "POST",
     });
   }
 
-  async createCheckout(plan: string): Promise<{ url: string }> {
-    return this.fetchJSON<{ url: string }>("/api/v1/billing/checkout", {
+  async createCheckout(_plan: string = ""): Promise<{ url: string; checkout_url?: string }> {
+    return this.fetchJSON<{ url: string; checkout_url?: string }>("/api/v1/billing/subscribe", {
       method: "POST",
-      body: JSON.stringify({ plan }),
     });
   }
 

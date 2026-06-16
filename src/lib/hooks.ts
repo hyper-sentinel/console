@@ -432,7 +432,7 @@ export function useRegisterUSDCWallet() {
 export function useSubscribe() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (plan: "pro" | "enterprise") => api.subscribe(plan),
+    mutationFn: (plan: string = "") => api.subscribe(plan),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["billing"] });
     },

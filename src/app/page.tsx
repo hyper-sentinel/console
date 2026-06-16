@@ -13,13 +13,13 @@ import {
 const FEATURES = [
   {
     icon: Brain,
-    title: "5 LLM Providers",
-    desc: "Claude, GPT, Gemini, Grok, Ollama. Your AI subscription is your identity.",
+    title: "8 LLM Providers",
+    desc: "Claude, GPT, Gemini, Grok, DeepSeek + more. Your AI subscription is your identity.",
     color: "var(--accent-purple)",
   },
   {
     icon: Terminal,
-    title: "62+ Tools",
+    title: "69 Tools",
     desc: "Market data, trading, sentiment, macro, social — all through one API.",
     color: "var(--accent-green)",
   },
@@ -37,8 +37,8 @@ const FEATURES = [
   },
   {
     icon: Layers,
-    title: "Agent Swarm (Coming Soon)",
-    desc: "Solo agent or 5-agent team. Analyst, Trader, Risk Manager — all coordinated.",
+    title: "Quant & Risk Engine",
+    desc: "Sharpe, VaR, drawdown, ARIMA/GARCH forecasts, ML regime signals, portfolio risk.",
     color: "var(--accent-purple)",
   },
   {
@@ -51,58 +51,22 @@ const FEATURES = [
 
 const PRICING = [
   {
-    name: "Free",
-    price: "$0",
-    period: "/mo",
-    desc: "Pay-as-you-go fees",
-    color: "var(--accent-green)",
+    name: "Pay-as-you-go",
+    price: "20%",
+    period: " markup",
+    desc: "No subscriptions, no tiers",
+    color: "var(--accent-purple)",
     features: [
-      "300 req/min rate limit",
-      "40% LLM markup",
-      "0.10% maker / 0.07% taker",
-      "1 API key",
-      "All 62+ tools",
-      "Encrypted vault",
+      "Flat 20% markup on LLM provider cost",
+      "1,000 req/min rate limit",
+      "0.01% maker / 0.01% taker",
+      "All 69 tools · 8 LLM providers",
+      "Billed monthly via Stripe",
+      "Encrypted vault · Web4 auth",
     ],
     cta: "Get Started",
     href: "/signup",
-    featured: false,
-  },
-  {
-    name: "Pro",
-    price: "$100",
-    period: "/mo",
-    desc: "For serious traders",
-    color: "var(--accent-purple)",
-    features: [
-      "1,000 req/min rate limit",
-      "20% LLM markup",
-      "0.06% maker / 0.04% taker",
-      "10 API keys",
-      "Swarm + Team modes (coming soon)",
-      "Priority support",
-    ],
-    cta: "Upgrade to Pro",
-    href: "/signup",
     featured: true,
-  },
-  {
-    name: "Enterprise",
-    price: "$1,000",
-    period: "/mo",
-    desc: "Unlimited scale",
-    color: "var(--accent-yellow)",
-    features: [
-      "Unlimited rate limit",
-      "10% LLM markup",
-      "0.02% maker / 0.01% taker",
-      "1,000 API keys",
-      "Dedicated support",
-      "Custom integrations",
-    ],
-    cta: "Contact Sales",
-    href: "/signup",
-    featured: false,
   },
 ];
 
@@ -224,7 +188,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-sm sm:text-base mb-5 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay" style={{ color: "var(--text-secondary)" }}>
-              Your AI subscription is your identity. 62+ tools across Hyperliquid, Aster DEX, and Polymarket —
+              Your AI subscription is your identity. 69 tools across Hyperliquid, Aster DEX, and Polymarket —
               all through one API key. AI thinks. Blockchain executes. You direct.
             </p>
 
@@ -302,7 +266,7 @@ export default function LandingPage() {
                         <p style={{ color: "var(--text-dim)", fontSize: "10px" }}>Symbol: ETH/USDT · Venue: Hyperliquid · Interval: 5m</p>
                         <p style={{ color: "var(--text-dim)", fontSize: "10px" }}>Trade size: $50 · Leverage: 3x · TP: 1.0% · SL: -2.0%</p>
 
-                        <p style={{ color: "var(--text-dim)", marginTop: "10px" }}># 62+ tools available</p>
+                        <p style={{ color: "var(--text-dim)", marginTop: "10px" }}># 69 tools available</p>
                         <p><span style={{ color: "var(--accent-cyan)" }}>&gt;</span> /tools</p>
                         <p style={{ color: "var(--text-secondary)", fontSize: "10px" }}>Trading (13) · Market Data (16) · Intelligence (11) · Macro (3) · Social (9) · Wallet (6) · Algo (5)</p>
                       </div>
@@ -345,7 +309,7 @@ export default function LandingPage() {
             {[
               { step: "01", icon: Brain, title: "Sign in with AI", desc: "Paste your Claude, GPT, Gemini, or Grok API key. You're instantly authenticated.", color: "var(--accent-purple)" },
               { step: "02", icon: Wallet, title: "Connect exchanges", desc: "Add your Hyperliquid, Aster, Polymarket keys — encrypted in your vault. We never see them.", color: "var(--accent-cyan)" },
-              { step: "03", icon: Cpu, title: "Deploy your agent", desc: "62+ tools monitor markets, execute trades, read sentiment — 24/7, within your guardrails.", color: "var(--accent-green)" },
+              { step: "03", icon: Cpu, title: "Deploy your agent", desc: "69 tools monitor markets, execute trades, read sentiment — 24/7, within your guardrails.", color: "var(--accent-green)" },
             ].map((s) => (
               <div key={s.step} className="text-center">
                 <div className="text-xs font-mono font-bold mb-4" style={{ color: s.color }}>{s.step}</div>
@@ -369,7 +333,7 @@ export default function LandingPage() {
             <p style={{ color: "var(--text-secondary)" }}>Start free. Scale when you&apos;re ready.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 max-w-md mx-auto gap-4 sm:gap-6">
             {PRICING.map((plan) => (
               <div
                 key={plan.name}

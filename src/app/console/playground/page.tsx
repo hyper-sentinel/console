@@ -54,7 +54,7 @@ async function directToolCall(name: string, params: Record<string, unknown>): Pr
 
 const MAX_TOOL_ROUNDS = 5;
 
-const SYSTEM_PROMPT = `You are Sentinel, an AI trading assistant with 62+ tools. Be concise and professional.
+const SYSTEM_PROMPT = `You are Sentinel, an AI trading assistant with 69 tools. Be concise and professional.
 
 TOOL CALLING FORMAT — when you need live data or want to execute an action, output EXACTLY:
 
@@ -303,7 +303,7 @@ export default function PlaygroundPage() {
             </div>
             <p className="text-base font-medium" style={{ color: "#52525B" }}>Start testing with Sentinel</p>
             <p className="text-xs max-w-md" style={{ color: "#3F3F46" }}>
-              Ask about crypto prices, place trades, get market intel, or use any of 62+ tools. Your AI key is forwarded to your chosen provider.
+              Ask about crypto prices, place trades, get market intel, or use any of 69 tools. Your AI key is forwarded to your chosen provider.
             </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {["What's the price of BTC?", "Show me trending tokens", "Get the macro dashboard"].map((q) => (

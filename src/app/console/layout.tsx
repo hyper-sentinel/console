@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import PaymentAlert from "@/components/PaymentAlert";
 import {
   LayoutGrid, Key, Zap, Wrench, BarChart3,
   CreditCard, Settings, Search, Play,
@@ -239,7 +240,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
               color: "#A78BFA",
               border: "1px solid rgba(139, 92, 246, 0.25)",
             }}>
-              {user?.tier?.toUpperCase() || "FREE"}
+              PAY-AS-YOU-GO
             </span>
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(139, 92, 246, 0.2)", color: "#A78BFA" }}>
@@ -254,6 +255,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
 
         {/* Page Content */}
         <div className="flex-1 overflow-auto">
+          <PaymentAlert />
           {children}
         </div>
       </main>

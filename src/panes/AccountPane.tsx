@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useBillingStatus, useBillingUsage, useBillingHistory, useUSDCBalance, useSubscribe, useCreateApiKey } from "@/lib/hooks";
+import { useBillingStatus, useBillingUsage, useBillingHistory, useCreateApiKey } from "@/lib/hooks";
 import { useAuth } from "@/lib/auth";
 
 export default function AccountPane() {
@@ -8,22 +8,11 @@ export default function AccountPane() {
   const { data: billing, isLoading: billingLoading } = useBillingStatus();
   const { data: usage } = useBillingUsage();
   const { data: history } = useBillingHistory();
-  const { data: usdc } = useUSDCBalance();
-  const subscribe = useSubscribe();
   const createKey = useCreateApiKey();
 
   const [keyName, setKeyName] = useState("");
   const [newKey, setNewKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "keys" | "history">("overview");
-
-  const handleSubscribe = async (plan: "pro" | "enterprise") => {
-    try {
-      const result = await subscribe.mutateAsync(plan);
-      if (result?.url) window.open(result.url, "_blank");
-    } catch (e) {
-      console.error("Subscribe error:", e);
-    }
-  };
 
   const handleCreateKey = async () => {
     if (!keyName.trim()) return;
@@ -36,7 +25,6 @@ export default function AccountPane() {
     }
   };
 
-  const tier = (billing as Record<string, unknown>)?.tier || user?.tier || "free";
   const fees = (billing as Record<string, unknown>)?.your_fees as Record<string, string> | undefined;
 
   return (
@@ -66,8 +54,8 @@ export default function AccountPane() {
             <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>Current Plan</span>
-                <span className={`tier-badge ${tier === "pro" || tier === "enterprise" ? "paid" : "free"}`}>
-                  {String(tier).toUpperCase()}
+                <span className="tier-badge paid">
+                  PAY-AS-YOU-GO
                 </span>
               </div>
               {billingLoading ? (
@@ -117,41 +105,6 @@ export default function AccountPane() {
               </div>
             )}
 
-            {/* USDC Balance */}
-            {usdc && (
-              <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>USDC Balance</span>
-                  <span className="font-mono font-bold" style={{ color: "var(--accent-green)" }}>
-                    ${Number((usdc as Record<string, unknown>)?.balance || 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Upgrade Buttons */}
-            {tier === "free" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleSubscribe("pro")}
-                  className="flex-1 py-2 rounded font-bold text-xs transition hover:opacity-80"
-                  style={{ background: "var(--accent-green)", color: "#000" }}
-                  disabled={subscribe.isPending}
-                >
-                  {subscribe.isPending ? "Processing..." : "Upgrade to Pro — $100/mo"}
-                </button>
-              </div>
-            )}
-            {(tier === "free" || tier === "pro") && (
-              <button
-                onClick={() => handleSubscribe("enterprise")}
-                className="w-full py-2 rounded font-bold text-xs transition hover:opacity-80"
-                style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.3)" }}
-                disabled={subscribe.isPending}
-              >
-                {subscribe.isPending ? "Processing..." : "Upgrade to Enterprise — $1,000/mo"}
-              </button>
-            )}
           </>
         )}
 

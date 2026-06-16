@@ -30,7 +30,6 @@ export default function ConsoleDashboard() {
 
 
 
-  const tier = String(billing?.tier || "free");
   const apiCalls = billing?.monthly_api_calls != null ? Number(billing.monthly_api_calls) : null;
   const rateLimit = String(billing?.rate_limit_per_min || 300);
 
@@ -59,17 +58,17 @@ export default function ConsoleDashboard() {
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold uppercase" style={{ color: "#71717A" }}>Current Plan</span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{
-                    background: tier === "enterprise" ? "rgba(251,191,36,0.12)" : tier === "pro" ? "rgba(139,92,246,0.12)" : "rgba(0,255,136,0.08)",
-                    color: tier === "enterprise" ? "#FBBF24" : tier === "pro" ? "#A78BFA" : "#00FF88",
+                    background: "rgba(139,92,246,0.12)",
+                    color: "#A78BFA",
                   }}>
-                    {tier.toUpperCase()}
+                    PAY-AS-YOU-GO
                   </span>
                 </div>
                 <p className="text-2xl font-bold text-white mb-1">
-                  {tier === "enterprise" ? "$1,000" : tier === "pro" ? "$100" : "$0"}<span className="text-sm font-normal" style={{ color: "#71717A" }}>/mo</span>
+                  20%<span className="text-sm font-normal" style={{ color: "#71717A" }}> markup</span>
                 </p>
                 <p className="text-xs" style={{ color: "#52525B" }}>
-                  {tier === "free" ? "Pay-as-you-go fees" : "Fixed monthly + reduced fees"}
+                  Flat 20% on LLM provider cost — billed via Stripe
                 </p>
               </div>
 
@@ -146,7 +145,7 @@ export default function ConsoleDashboard() {
           <Link href="/console/tools" className="group console-card console-card-interactive rounded-xl p-6">
             <div className="text-2xl mb-3" style={{ color: "#A78BFA" }}><Wrench size={24} /></div>
             <p className="text-sm font-semibold text-white group-hover:text-purple-300 transition mb-1">Browse Tools</p>
-            <p className="text-xs" style={{ color: "#71717A" }}>Explore 62+ available API tools</p>
+            <p className="text-xs" style={{ color: "#71717A" }}>Explore 69 available API tools</p>
             <span className="inline-block mt-3 text-xs" style={{ color: "#52525B" }}>↗</span>
           </Link>
         </div>
