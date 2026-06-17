@@ -1096,6 +1096,14 @@ export default function CopilotPane() {
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+          // 402 quota exceeded — attach quota data so outer catch can render CTA
+          if (res.status === 402) {
+            const quotaErr = Object.assign(new Error(err.message || "quota_exceeded"), {
+              status: 402,
+              quotaData: err,
+            });
+            throw quotaErr;
+          }
           const errMsg = typeof err.detail === "string" ? err.detail
             : typeof err.error === "string" ? err.error
             : err.error?.message || err.message || err.title || JSON.stringify(err).slice(0, 200);
@@ -1236,17 +1244,37 @@ export default function CopilotPane() {
         return u;
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Connection failed";
-      setMessages((m) => {
-        const u = [...m];
-        const last = u[u.length - 1];
-        if (last && last.role === "assistant" && !last.content) {
-          u[u.length - 1] = { ...last, content: "", error: msg };
-        } else {
-          u.push({ id: genId(), role: "assistant", content: "", error: msg, timestamp: ts() });
-        }
-        return u;
-      });
+      // 402 quota exceeded — render styled CTA instead of raw error
+      const errAny = err as { status?: number; quotaData?: { prompts_used?: number; prompt_limit?: number; window_days?: number; resets_at?: string; checkout_url?: string; error?: string } };
+      if (errAny?.status === 402 && errAny?.quotaData) {
+        const q = errAny.quotaData;
+        const isPaymentFailed = q.error === "payment_failed";
+        const resetsDate = q.resets_at ? new Date(q.resets_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
+        const ctaContent = `__QUOTA_402__${JSON.stringify(q)}`;
+        setMessages((m) => {
+          const u = [...m];
+          const last = u[u.length - 1];
+          if (last && last.role === "assistant" && !last.content) {
+            u[u.length - 1] = { ...last, content: ctaContent, error: undefined };
+          } else {
+            u.push({ id: genId(), role: "assistant", content: ctaContent, timestamp: ts() });
+          }
+          return u;
+        });
+        void isPaymentFailed; void resetsDate; // used in render below
+      } else {
+        const msg = err instanceof Error ? err.message : "Connection failed";
+        setMessages((m) => {
+          const u = [...m];
+          const last = u[u.length - 1];
+          if (last && last.role === "assistant" && !last.content) {
+            u[u.length - 1] = { ...last, content: "", error: msg };
+          } else {
+            u.push({ id: genId(), role: "assistant", content: "", error: msg, timestamp: ts() });
+          }
+          return u;
+        });
+      }
     }
 
     setIsThinking(false);
@@ -1458,8 +1486,55 @@ export default function CopilotPane() {
                         </div>
                       )}
 
+                      {/* 402 Quota CTA panel */}
+                      {msg.content?.startsWith("__QUOTA_402__") ? (() => {
+                        try {
+                          const q = JSON.parse(msg.content.slice("__QUOTA_402__".length)) as {
+                            error?: string; message?: string; prompts_used?: number;
+                            prompt_limit?: number; window_days?: number; resets_at?: string; checkout_url?: string;
+                          };
+                          const isPaymentFailed = q.error === "payment_failed";
+                          const resetsDate = q.resets_at ? new Date(q.resets_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
+                          const title = isPaymentFailed ? "Payment failed" : "Free tier limit reached";
+                          const subtitle = isPaymentFailed
+                            ? "Update your payment method to restore unlimited access."
+                            : `You've used ${q.prompts_used ?? "?"} / ${q.prompt_limit ?? 10} free prompts this week.${resetsDate ? ` Resets ${resetsDate}.` : ""}`;
+                          return (
+                            <div
+                              className="rounded-lg px-4 py-4 my-1"
+                              style={{
+                                background: "rgba(245,158,11,0.07)",
+                                border: "1px solid rgba(245,158,11,0.25)",
+                              }}
+                            >
+                              <p className="text-[12px] font-semibold mb-1" style={{ color: "#F59E0B" }}>{title}</p>
+                              <p className="text-[11px] mb-3" style={{ color: "#A1A1AA" }}>{subtitle}</p>
+                              {q.checkout_url ? (
+                                <a
+                                  href={q.checkout_url}
+                                  className="inline-block text-[11px] font-semibold px-4 py-1.5 rounded-lg transition-all hover:opacity-90"
+                                  style={{ background: "#8B5CF6", color: "#FFF" }}
+                                >
+                                  {isPaymentFailed ? "Update Payment Method →" : "Add Payment Method →"}
+                                </a>
+                              ) : (
+                                <a
+                                  href="/console/billing"
+                                  className="inline-block text-[11px] font-semibold px-4 py-1.5 rounded-lg transition-all hover:opacity-90"
+                                  style={{ background: "#8B5CF6", color: "#FFF" }}
+                                >
+                                  Go to Billing →
+                                </a>
+                              )}
+                            </div>
+                          );
+                        } catch {
+                          return null;
+                        }
+                      })() : null}
+
                       {/* Message content with rich markdown */}
-                      {msg.content && <RichMarkdown text={msg.content} />}
+                      {msg.content && !msg.content.startsWith("__QUOTA_402__") && <RichMarkdown text={msg.content} />}
 
                       {/* Meta + actions footer */}
                       <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">

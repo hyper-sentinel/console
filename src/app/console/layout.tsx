@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, type BillingStatus } from "@/lib/api";
 import PaymentAlert from "@/components/PaymentAlert";
 import {
   LayoutGrid, Key, Zap, Wrench, BarChart3,
@@ -55,6 +55,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
   const { user, isLoading, logout } = useAuth();
   const [health, setHealth] = useState<boolean | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [billingStatus, setBillingStatus] = useState<BillingStatus | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -68,6 +69,12 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
       api.health().then(() => setHealth(true)).catch(() => setHealth(false));
     }, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    api.getBillingStatus()
+      .then((d) => setBillingStatus(d))
+      .catch(() => {});
   }, []);
 
   const isActive = (href: string) => {
@@ -235,13 +242,29 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
                 {health ? "Online" : "Offline"}
               </span>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{
-              background: "rgba(139, 92, 246, 0.12)",
-              color: "#A78BFA",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
-            }}>
-              PAY-AS-YOU-GO
-            </span>
+            {(() => {
+              const isGated = billingStatus?.gated === true || ((billingStatus?.prompts_used ?? 0) >= (billingStatus?.prompt_limit ?? 10));
+              if (isGated) {
+                return (
+                  <Link href="/console/billing" className="text-[11px] px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-80" style={{
+                    background: "rgba(245,158,11,0.12)",
+                    color: "#F59E0B",
+                    border: "1px solid rgba(245,158,11,0.3)",
+                  }}>
+                    FREE (Limited)
+                  </Link>
+                );
+              }
+              return (
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{
+                  background: "rgba(139, 92, 246, 0.12)",
+                  color: "#A78BFA",
+                  border: "1px solid rgba(139, 92, 246, 0.25)",
+                }}>
+                  PAY-AS-YOU-GO
+                </span>
+              );
+            })()}
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(139, 92, 246, 0.2)", color: "#A78BFA" }}>
                 {(user?.name?.[0] || user?.email?.[0] || "S").toUpperCase()}

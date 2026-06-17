@@ -38,8 +38,9 @@ export default function AuthGuard({ children, requiredTier }: AuthGuardProps) {
 
   // Tier gating — show upgrade prompt for restricted features
   if (requiredTier && user) {
-    const tierRank = { free: 0, pro: 1, enterprise: 2 };
-    if (tierRank[user.tier] < tierRank[requiredTier]) {
+    const tierRank: Record<string, number> = { "pay-as-you-go": 0, free: 0, pro: 1, enterprise: 2 };
+    const userTierRank = user.tier != null ? (tierRank[user.tier] ?? 0) : 0;
+    if (userTierRank < (tierRank[requiredTier] ?? 0)) {
       return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center glass-panel p-8 max-w-md">

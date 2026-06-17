@@ -1,6 +1,6 @@
 "use client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "./api";
+import { api, type BillingStatus } from "./api";
 
 // ── Generic tool hook ────────────────────────────────────────
 
@@ -388,11 +388,16 @@ export function useDiscordSend() {
 // ═══════════════════════════════════════════════════════════
 
 export function useBillingStatus() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return useQuery<Record<string, any>>({
+  return useQuery<BillingStatus>({
     queryKey: ["billing", "status"],
-    queryFn: () => api.getBillingStatus() as any,
+    queryFn: () => api.getBillingStatus(),
     staleTime: 60000,
+  });
+}
+
+export function usePortalSession() {
+  return useMutation({
+    mutationFn: () => api.getPortalSession(),
   });
 }
 

@@ -31,7 +31,11 @@ export default function ConsoleDashboard() {
 
 
   const apiCalls = billing?.monthly_api_calls != null ? Number(billing.monthly_api_calls) : null;
-  const rateLimit = String(billing?.rate_limit_per_min || 300);
+  const rateLimit = String(billing?.rate_limit_per_min || 1000);
+  const promptsUsed = billing?.prompts_used != null ? Number(billing.prompts_used) : null;
+  const promptLimit = billing?.prompt_limit != null ? Number(billing.prompt_limit) : 10;
+  const isGated = billing?.gated === true || (promptsUsed != null && promptsUsed >= promptLimit);
+  const promptsResetsAt = billing?.resets_at ? new Date(billing.resets_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-10">
@@ -48,9 +52,9 @@ export default function ConsoleDashboard() {
         <h2 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#52525B" }}>
           Usage Snapshot for {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {loading ? (
-            <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
+            <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
             <>
               {/* Plan Card */}
@@ -70,6 +74,34 @@ export default function ConsoleDashboard() {
                 <p className="text-xs" style={{ color: "#52525B" }}>
                   Flat 20% on LLM provider cost — billed via Stripe
                 </p>
+              </div>
+
+              {/* Prompts This Week Card */}
+              <div className="console-card rounded-xl p-5">
+                <span className="text-xs font-semibold uppercase" style={{ color: "#71717A" }}>Prompts This Week</span>
+                <p className="text-2xl font-bold mt-3 mb-1 font-mono" style={{ color: isGated ? "#F59E0B" : "white" }}>
+                  {promptsUsed != null ? promptsUsed : "—"}
+                  <span className="text-sm font-normal ml-1" style={{ color: "#52525B" }}>/ {promptLimit}</span>
+                </p>
+                {/* Progress bar */}
+                <div className="w-full h-1.5 rounded-full mb-2 overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: promptsUsed != null ? `${Math.min(100, (promptsUsed / promptLimit) * 100)}%` : "0%",
+                      background: isGated ? "#F59E0B" : "#8B5CF6",
+                    }}
+                  />
+                </div>
+                {isGated ? (
+                  <Link href="/console/billing" className="text-xs font-semibold hover:underline" style={{ color: "#F59E0B" }}>
+                    Add payment method →
+                  </Link>
+                ) : (
+                  <p className="text-xs" style={{ color: "#52525B" }}>
+                    {promptsResetsAt ? `Resets ${promptsResetsAt}` : "Rolling 7-day window"}
+                  </p>
+                )}
               </div>
 
               {/* API Calls Card */}

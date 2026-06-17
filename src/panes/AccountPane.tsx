@@ -25,7 +25,7 @@ export default function AccountPane() {
     }
   };
 
-  const fees = (billing as Record<string, unknown>)?.your_fees as Record<string, string> | undefined;
+  const fees = billing?.your_fees as Record<string, string> | undefined;
 
   return (
     <div className="flex flex-col h-full" style={{ fontSize: "11px" }}>
@@ -63,21 +63,21 @@ export default function AccountPane() {
               ) : (
                 <div className="space-y-1">
                   <div className="flex justify-between">
-                    <span style={{ color: "var(--text-dim)" }}>Subscription</span>
+                    <span style={{ color: "var(--text-dim)" }}>Plan</span>
                     <span className="font-mono" style={{ color: "var(--text-primary)" }}>
-                      {(billing as Record<string, unknown>)?.subscription ? String((billing as Record<string, unknown>).subscription) : "Free"}
+                      {billing?.plan ?? billing?.payment_status ?? "Free"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span style={{ color: "var(--text-dim)" }}>API Calls (month)</span>
                     <span className="font-mono" style={{ color: "var(--accent-cyan)" }}>
-                      {Number((billing as Record<string, unknown>)?.monthly_api_calls || 0).toLocaleString()}
+                      {Number(billing?.monthly_api_calls || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span style={{ color: "var(--text-dim)" }}>Rate Limit</span>
                     <span className="font-mono">
-                      {String((billing as Record<string, unknown>)?.rate_limit_per_min || 300)}/min
+                      {String(billing?.rate_limit_per_min || 1000)}/min
                     </span>
                   </div>
                 </div>
