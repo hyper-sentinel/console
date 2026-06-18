@@ -243,7 +243,11 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
               </span>
             </div>
             {(() => {
-              const isGated = billingStatus?.gated === true || ((billingStatus?.prompts_used ?? 0) >= (billingStatus?.prompt_limit ?? 10));
+              // Trust the gateway's `gated` field — it already accounts for active
+              // payment status (gated == paymentStatus != "active"). Do NOT re-derive
+              // from prompt counts, which wrongly brands a paying user "FREE (Limited)"
+              // when their stale prompt count exceeds the free limit.
+              const isGated = billingStatus?.gated === true;
               if (isGated) {
                 return (
                   <Link href="/console/billing" className="text-[11px] px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-80" style={{

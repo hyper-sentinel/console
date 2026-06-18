@@ -25,7 +25,10 @@ export default function PaymentAlert() {
 
   const promptsUsed = billing.prompts_used ?? 0;
   const promptLimit = billing.prompt_limit ?? 10;
-  const isGated = billing.gated === true || promptsUsed >= promptLimit;
+  // Trust the gateway's `gated` field (== paymentStatus != "active"). Re-deriving from
+  // prompt counts wrongly shows "Free tier limit reached" to a paying user whose stale
+  // prompt count exceeds the free limit.
+  const isGated = billing.gated === true;
 
   const handleFix = async () => {
     try {
