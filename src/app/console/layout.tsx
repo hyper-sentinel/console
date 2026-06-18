@@ -146,27 +146,28 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
           </button>
         </div>
 
-        {/* Launch Terminal Button */}
+        {/* Trading terminal — web app NOT live yet. Non-navigating "coming soon" state
+            (the /dashboard terminal isn't shipped as a web app); nudge users to the CLI. */}
         <div className="px-3 py-3 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-[1.02]"
+          <div
+            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold cursor-default select-none"
             style={{
-              background: "linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,229,255,0.1))",
-              border: "1px solid rgba(0,255,136,0.2)",
-              color: "#00FF88",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#52525B",
             }}
-            title="Open Trading Terminal"
+            title="Web terminal coming soon — use the CLI: pip install hyper-sentinel"
           >
             {!sidebarCollapsed ? (
               <>
                 <Play size={14} />
-                <span>Launch Terminal</span>
+                <span>Terminal</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA" }}>SOON</span>
               </>
             ) : (
               <Play size={14} />
             )}
-          </Link>
+          </div>
         </div>
 
         {/* Nav Sections */}
