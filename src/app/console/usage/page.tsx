@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
+import { UsageBarChart } from "@/components/UsageBarChart";
 
 // ── Types matching Go gateway response ──
 interface ToolStat {
@@ -46,7 +47,6 @@ export default function UsagePage() {
 
   // Daily chart data — use real data if available, otherwise show empty
   const daily = breakdown?.daily || [];
-  const maxCalls = Math.max(...daily.map((d) => d.calls), 1);
 
   // Total platform fees from LLM usage
   const totalFees = llmStats.reduce((sum, t) => {
@@ -105,38 +105,7 @@ export default function UsagePage() {
           {/* Daily Usage Chart */}
           <div className="rounded-xl p-6 border mb-8 stagger-3" style={{ background: "#1A1A1E", borderColor: "rgba(255,255,255,0.06)" }}>
             <h2 className="text-sm font-semibold text-white mb-6">Daily API Calls</h2>
-            {daily.length === 0 ? (
-              <div className="h-40 flex items-center justify-center">
-                <span className="text-xs font-mono" style={{ color: "#3F3F46" }}>No usage data yet — make some API calls to see your chart</span>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-end gap-1 h-40">
-                  {daily.map((day, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center group relative">
-                      <div
-                        className="w-full rounded-t transition-all group-hover:opacity-100 opacity-80"
-                        style={{
-                          height: `${Math.max(2, (day.calls / maxCalls) * 100)}%`,
-                          background: "linear-gradient(to top, rgba(139, 92, 246, 0.6), rgba(139, 92, 246, 0.2))",
-                          minHeight: 2,
-                        }}
-                      />
-                      <div
-                        className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap rounded-lg px-2 py-1 text-[10px] z-10"
-                        style={{ background: "#27272A", color: "#E4E4E7", border: "1px solid rgba(255,255,255,0.08)" }}
-                      >
-                        {day.calls} calls · {day.date}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between mt-2 text-[9px] font-mono" style={{ color: "#3F3F46" }}>
-                  <span>{daily[0]?.date}</span>
-                  <span>{daily[daily.length - 1]?.date}</span>
-                </div>
-              </>
-            )}
+            <UsageBarChart data={daily} />
           </div>
 
           {/* Tool Usage Breakdown */}

@@ -64,6 +64,13 @@ export interface BillingStatus {
     maker_fee: string;
     taker_fee: string;
   };
+  // Spend (month-to-date) — surfaced by the gateway GetStatus
+  platform_fees?: string; // e.g. "$6.92"
+  monthly_tokens?: number;
+  // Payment method on file (active users only). Card → brand+last4; Link → type only.
+  payment_method_type?: string; // "card" | "link" | ...
+  card_brand?: string;
+  card_last4?: string;
   // Free-tier quota fields
   prompts_used: number;
   prompt_limit: number;
