@@ -90,9 +90,7 @@ interface APIKeyInfo {
 }
 
 const TIER_INFO = {
-  free: { name: "Free", price: "$0/mo", llm: "40%", maker: "0.10%", taker: "0.07%", rate: "300 req/min", color: "var(--text-dim)" },
-  pro: { name: "Pro", price: "$100/mo", llm: "20%", maker: "0.06%", taker: "0.04%", rate: "1K req/min", color: "var(--accent-green)" },
-  enterprise: { name: "Enterprise", price: "$1,000/mo", llm: "10%", maker: "0.02%", taker: "0.01%", rate: "Unlimited", color: "var(--accent-cyan)" },
+  standard: { name: "Pay-as-you-go", price: "20% markup", llm: "20%", maker: "0.01%", taker: "0.01%", rate: "1,000 req/min", color: "var(--accent-purple)" },
 };
 
 export default function SettingsPage() {
@@ -118,7 +116,7 @@ export default function SettingsPage() {
 
   const providerName = user?.provider ? PROVIDER_INFO[user.provider]?.name : "Not Connected";
   const providerPrefix = user?.provider ? PROVIDER_INFO[user.provider]?.keyPrefix : "";
-  const tierInfo = TIER_INFO[(user?.tier || "free") as keyof typeof TIER_INFO];
+  const tierInfo = TIER_INFO.standard;
 
   // ── Load vault on mount or section change ──────────────
 
@@ -606,28 +604,25 @@ export default function SettingsPage() {
 
                 {/* Upgrade Table */}
                 <div>
-                  <p className="text-xs font-bold mb-2" style={{ color: "var(--text-dim)" }}>ALL TIERS</p>
+                  <p className="text-xs font-bold mb-2" style={{ color: "var(--text-dim)" }}>PRICING</p>
                   <div className="overflow-hidden rounded-lg" style={{ border: "1px solid var(--border)" }}>
                     <table className="w-full text-xs">
                       <thead>
                         <tr style={{ background: "var(--bg-primary)" }}>
-                          <th className="text-left p-2 font-medium" style={{ color: "var(--text-dim)" }}>Tier</th>
-                          <th className="text-right p-2 font-medium" style={{ color: "var(--text-dim)" }}>Price</th>
+                          <th className="text-left p-2 font-medium" style={{ color: "var(--text-dim)" }}>Plan</th>
                           <th className="text-right p-2 font-medium" style={{ color: "var(--text-dim)" }}>LLM</th>
                           <th className="text-right p-2 font-medium" style={{ color: "var(--text-dim)" }}>Maker</th>
+                          <th className="text-right p-2 font-medium" style={{ color: "var(--text-dim)" }}>Taker</th>
                           <th className="text-right p-2 font-medium" style={{ color: "var(--text-dim)" }}>Rate</th>
                         </tr>
                       </thead>
                       <tbody>
                         {Object.entries(TIER_INFO).map(([key, t]) => (
-                          <tr key={key} style={{
-                            background: key === user?.tier ? "rgba(0, 229, 255, 0.05)" : "transparent",
-                            borderTop: "1px solid var(--border)",
-                          }}>
-                            <td className="p-2 font-medium" style={{ color: t.color }}>{t.name} {key === user?.tier ? "←" : ""}</td>
-                            <td className="p-2 text-right font-mono">{t.price}</td>
+                          <tr key={key} style={{ borderTop: "1px solid var(--border)" }}>
+                            <td className="p-2 font-medium" style={{ color: t.color }}>{t.name}</td>
                             <td className="p-2 text-right font-mono">{t.llm}</td>
                             <td className="p-2 text-right font-mono">{t.maker}</td>
+                            <td className="p-2 text-right font-mono">{t.taker}</td>
                             <td className="p-2 text-right font-mono">{t.rate}</td>
                           </tr>
                         ))}

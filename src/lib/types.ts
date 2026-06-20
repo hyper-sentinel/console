@@ -179,15 +179,16 @@ export interface PolymarketMarket {
 // ── Billing ──
 
 export interface BillingStatus {
-  tier: string;
-  subscription: string;
+  plan: string;
+  payment_status: string;
   monthly_api_calls: number;
   monthly_limit: string;
   rate_limit_per_min: number;
+  platform_fees?: string;
+  billing?: string;
   your_fees: {
     llm_markup: string;
     maker_fee: string;
     taker_fee: string;
   };
-  upgrade: Record<string, unknown>;
 }

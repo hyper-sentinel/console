@@ -161,9 +161,9 @@ export default function LoginPage() {
             <Shield size={10} /> Zero-knowledge vault
           </span>
           <span>·</span>
-          <span>62+ tools</span>
+          <span>69 tools</span>
           <span>·</span>
-          <span>5 LLM providers</span>
+          <span>8 LLM providers</span>
         </div>
 
         {/* Footer */}

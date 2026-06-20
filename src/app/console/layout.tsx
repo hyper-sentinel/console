@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, type BillingStatus } from "@/lib/api";
+import PaymentAlert from "@/components/PaymentAlert";
 import {
   LayoutGrid, Key, Zap, Wrench, BarChart3,
   CreditCard, Settings, Search, Play,
@@ -54,6 +55,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
   const { user, isLoading, logout } = useAuth();
   const [health, setHealth] = useState<boolean | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [billingStatus, setBillingStatus] = useState<BillingStatus | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -67,6 +69,12 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
       api.health().then(() => setHealth(true)).catch(() => setHealth(false));
     }, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    api.getBillingStatus()
+      .then((d) => setBillingStatus(d))
+      .catch(() => {});
   }, []);
 
   const isActive = (href: string) => {
@@ -138,27 +146,28 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
           </button>
         </div>
 
-        {/* Launch Terminal Button */}
+        {/* Trading terminal — web app NOT live yet. Non-navigating "coming soon" state
+            (the /dashboard terminal isn't shipped as a web app); nudge users to the CLI. */}
         <div className="px-3 py-3 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-[1.02]"
+          <div
+            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold cursor-default select-none"
             style={{
-              background: "linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,229,255,0.1))",
-              border: "1px solid rgba(0,255,136,0.2)",
-              color: "#00FF88",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#52525B",
             }}
-            title="Open Trading Terminal"
+            title="Web terminal coming soon — use the CLI: pip install hyper-sentinel"
           >
             {!sidebarCollapsed ? (
               <>
                 <Play size={14} />
-                <span>Launch Terminal</span>
+                <span>Terminal</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA" }}>SOON</span>
               </>
             ) : (
               <Play size={14} />
             )}
-          </Link>
+          </div>
         </div>
 
         {/* Nav Sections */}
@@ -234,13 +243,33 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
                 {health ? "Online" : "Offline"}
               </span>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{
-              background: "rgba(139, 92, 246, 0.12)",
-              color: "#A78BFA",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
-            }}>
-              {user?.tier?.toUpperCase() || "FREE"}
-            </span>
+            {(() => {
+              // Trust the gateway's `gated` field — it already accounts for active
+              // payment status (gated == paymentStatus != "active"). Do NOT re-derive
+              // from prompt counts, which wrongly brands a paying user "FREE (Limited)"
+              // when their stale prompt count exceeds the free limit.
+              const isGated = billingStatus?.gated === true;
+              if (isGated) {
+                return (
+                  <Link href="/console/billing" className="text-[11px] px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-80" style={{
+                    background: "rgba(245,158,11,0.12)",
+                    color: "#F59E0B",
+                    border: "1px solid rgba(245,158,11,0.3)",
+                  }}>
+                    FREE (Limited)
+                  </Link>
+                );
+              }
+              return (
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{
+                  background: "rgba(139, 92, 246, 0.12)",
+                  color: "#A78BFA",
+                  border: "1px solid rgba(139, 92, 246, 0.25)",
+                }}>
+                  PAY-AS-YOU-GO
+                </span>
+              );
+            })()}
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(139, 92, 246, 0.2)", color: "#A78BFA" }}>
                 {(user?.name?.[0] || user?.email?.[0] || "S").toUpperCase()}
@@ -254,6 +283,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
 
         {/* Page Content */}
         <div className="flex-1 overflow-auto">
+          <PaymentAlert />
           {children}
         </div>
       </main>

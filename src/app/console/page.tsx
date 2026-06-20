@@ -30,9 +30,14 @@ export default function ConsoleDashboard() {
 
 
 
-  const tier = String(billing?.tier || "free");
   const apiCalls = billing?.monthly_api_calls != null ? Number(billing.monthly_api_calls) : null;
-  const rateLimit = String(billing?.rate_limit_per_min || 300);
+  const rateLimit = String(billing?.rate_limit_per_min || 1000);
+  const promptsUsed = billing?.prompts_used != null ? Number(billing.prompts_used) : null;
+  const promptLimit = billing?.prompt_limit != null ? Number(billing.prompt_limit) : 10;
+  // Trust the gateway's `gated` field (== paymentStatus != "active"). Re-deriving from the
+  // prompt count wrongly shows "14/10 · Add payment method" to a paying customer.
+  const isGated = billing?.gated === true;
+  const promptsResetsAt = billing?.resets_at ? new Date(billing.resets_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-10">
@@ -49,9 +54,9 @@ export default function ConsoleDashboard() {
         <h2 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#52525B" }}>
           Usage Snapshot for {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {loading ? (
-            <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
+            <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
             <>
               {/* Plan Card */}
@@ -59,18 +64,46 @@ export default function ConsoleDashboard() {
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold uppercase" style={{ color: "#71717A" }}>Current Plan</span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{
-                    background: tier === "enterprise" ? "rgba(251,191,36,0.12)" : tier === "pro" ? "rgba(139,92,246,0.12)" : "rgba(0,255,136,0.08)",
-                    color: tier === "enterprise" ? "#FBBF24" : tier === "pro" ? "#A78BFA" : "#00FF88",
+                    background: "rgba(139,92,246,0.12)",
+                    color: "#A78BFA",
                   }}>
-                    {tier.toUpperCase()}
+                    PAY-AS-YOU-GO
                   </span>
                 </div>
                 <p className="text-2xl font-bold text-white mb-1">
-                  {tier === "enterprise" ? "$1,000" : tier === "pro" ? "$100" : "$0"}<span className="text-sm font-normal" style={{ color: "#71717A" }}>/mo</span>
+                  20%<span className="text-sm font-normal" style={{ color: "#71717A" }}> markup</span>
                 </p>
                 <p className="text-xs" style={{ color: "#52525B" }}>
-                  {tier === "free" ? "Pay-as-you-go fees" : "Fixed monthly + reduced fees"}
+                  Flat 20% on LLM provider cost — billed via Stripe
                 </p>
+              </div>
+
+              {/* Prompts This Week Card */}
+              <div className="console-card rounded-xl p-5">
+                <span className="text-xs font-semibold uppercase" style={{ color: "#71717A" }}>Prompts This Week</span>
+                <p className="text-2xl font-bold mt-3 mb-1 font-mono" style={{ color: isGated ? "#F59E0B" : "white" }}>
+                  {promptsUsed != null ? promptsUsed : "—"}
+                  <span className="text-sm font-normal ml-1" style={{ color: "#52525B" }}>/ {promptLimit}</span>
+                </p>
+                {/* Progress bar */}
+                <div className="w-full h-1.5 rounded-full mb-2 overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: promptsUsed != null ? `${Math.min(100, (promptsUsed / promptLimit) * 100)}%` : "0%",
+                      background: isGated ? "#F59E0B" : "#8B5CF6",
+                    }}
+                  />
+                </div>
+                {isGated ? (
+                  <Link href="/console/billing" className="text-xs font-semibold hover:underline" style={{ color: "#F59E0B" }}>
+                    Add payment method →
+                  </Link>
+                ) : (
+                  <p className="text-xs" style={{ color: "#52525B" }}>
+                    {promptsResetsAt ? `Resets ${promptsResetsAt}` : "Rolling 7-day window"}
+                  </p>
+                )}
               </div>
 
               {/* API Calls Card */}
@@ -120,14 +153,19 @@ export default function ConsoleDashboard() {
       <div className="stagger-4">
         <h2 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#52525B" }}>Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Launch Terminal — Hero Card */}
-          <Link href="/dashboard" className="group console-card console-card-interactive rounded-xl p-6 md:col-span-1"
-            style={{ background: "linear-gradient(135deg, rgba(0,255,136,0.04), rgba(0,229,255,0.04))", border: "1px solid rgba(0,255,136,0.15)" }}>
-            <div className="text-2xl mb-3" style={{ color: "#00FF88" }}><Play size={24} /></div>
-            <p className="text-sm font-semibold group-hover:text-green-300 transition mb-1" style={{ color: "#00FF88" }}>Launch Terminal</p>
-            <p className="text-xs" style={{ color: "#71717A" }}>Open the trading dashboard</p>
-            <span className="inline-block mt-3 text-xs" style={{ color: "#52525B" }}>↗</span>
-          </Link>
+          {/* Trading terminal — web app NOT live yet. Non-navigating "coming soon" card
+              that points users to the working product (the CLI). */}
+          <div className="console-card rounded-xl p-6 md:col-span-1 cursor-default"
+            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)" }}
+            title="Web terminal coming soon — use the CLI: pip install hyper-sentinel">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-2xl" style={{ color: "#52525B" }}><Play size={24} /></div>
+              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold" style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA" }}>COMING SOON</span>
+            </div>
+            <p className="text-sm font-semibold mb-1" style={{ color: "#A1A1AA" }}>Trading Terminal</p>
+            <p className="text-xs" style={{ color: "#71717A" }}>Web app not live yet — use the CLI:</p>
+            <code className="inline-block mt-2 text-[11px] px-2 py-1 rounded font-mono" style={{ background: "#0A0A0B", color: "#00FF88", border: "1px solid rgba(255,255,255,0.06)" }}>pip install hyper-sentinel</code>
+          </div>
 
           <Link href="/console/api-keys" className="group console-card console-card-interactive rounded-xl p-6">
             <div className="text-2xl mb-3" style={{ color: "#A78BFA" }}><KeyRound size={24} /></div>
@@ -146,7 +184,7 @@ export default function ConsoleDashboard() {
           <Link href="/console/tools" className="group console-card console-card-interactive rounded-xl p-6">
             <div className="text-2xl mb-3" style={{ color: "#A78BFA" }}><Wrench size={24} /></div>
             <p className="text-sm font-semibold text-white group-hover:text-purple-300 transition mb-1">Browse Tools</p>
-            <p className="text-xs" style={{ color: "#71717A" }}>Explore 62+ available API tools</p>
+            <p className="text-xs" style={{ color: "#71717A" }}>Explore 69 available API tools</p>
             <span className="inline-block mt-3 text-xs" style={{ color: "#52525B" }}>↗</span>
           </Link>
         </div>

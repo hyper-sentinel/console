@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
+import { UsageBarChart } from "@/components/UsageBarChart";
 
 // ── Types matching Go gateway response ──
 interface ToolStat {
@@ -39,7 +40,6 @@ export default function UsagePage() {
 
   const apiCalls = Number(billing?.monthly_api_calls || 0);
   const rateLimit = Number(billing?.rate_limit_per_min || 300);
-  const tier = (billing?.tier as string)?.toUpperCase() || "FREE";
 
   // Separate tool calls from LLM calls
   const toolStats = (breakdown?.tools || []).filter((t) => !t.model);
@@ -47,7 +47,6 @@ export default function UsagePage() {
 
   // Daily chart data — use real data if available, otherwise show empty
   const daily = breakdown?.daily || [];
-  const maxCalls = Math.max(...daily.map((d) => d.calls), 1);
 
   // Total platform fees from LLM usage
   const totalFees = llmStats.reduce((sum, t) => {
@@ -89,8 +88,8 @@ export default function UsagePage() {
               <p className="text-[10px] mt-1" style={{ color: "#52525B" }}>Platform fees: ${totalFees.toFixed(2)}</p>
             </div>
             <div className="rounded-xl p-5 border" style={{ background: "#1A1A1E", borderColor: "rgba(255,255,255,0.06)" }}>
-              <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "#52525B" }}>Current Tier</p>
-              <p className="text-3xl font-bold font-mono" style={{ color: "#A78BFA" }}>{tier}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "#52525B" }}>Plan</p>
+              <p className="text-xl font-bold font-mono" style={{ color: "#A78BFA" }}>Pay-as-you-go</p>
               <p className="text-[10px] mt-1" style={{ color: "#52525B" }}>{rateLimit}/min rate limit</p>
             </div>
             <div className="rounded-xl p-5 border" style={{ background: "#1A1A1E", borderColor: "rgba(255,255,255,0.06)" }}>
@@ -106,38 +105,7 @@ export default function UsagePage() {
           {/* Daily Usage Chart */}
           <div className="rounded-xl p-6 border mb-8 stagger-3" style={{ background: "#1A1A1E", borderColor: "rgba(255,255,255,0.06)" }}>
             <h2 className="text-sm font-semibold text-white mb-6">Daily API Calls</h2>
-            {daily.length === 0 ? (
-              <div className="h-40 flex items-center justify-center">
-                <span className="text-xs font-mono" style={{ color: "#3F3F46" }}>No usage data yet — make some API calls to see your chart</span>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-end gap-1 h-40">
-                  {daily.map((day, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center group relative">
-                      <div
-                        className="w-full rounded-t transition-all group-hover:opacity-100 opacity-80"
-                        style={{
-                          height: `${Math.max(2, (day.calls / maxCalls) * 100)}%`,
-                          background: "linear-gradient(to top, rgba(139, 92, 246, 0.6), rgba(139, 92, 246, 0.2))",
-                          minHeight: 2,
-                        }}
-                      />
-                      <div
-                        className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap rounded-lg px-2 py-1 text-[10px] z-10"
-                        style={{ background: "#27272A", color: "#E4E4E7", border: "1px solid rgba(255,255,255,0.08)" }}
-                      >
-                        {day.calls} calls · {day.date}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between mt-2 text-[9px] font-mono" style={{ color: "#3F3F46" }}>
-                  <span>{daily[0]?.date}</span>
-                  <span>{daily[daily.length - 1]?.date}</span>
-                </div>
-              </>
-            )}
+            <UsageBarChart data={daily} />
           </div>
 
           {/* Tool Usage Breakdown */}
@@ -200,7 +168,7 @@ export default function UsagePage() {
             </div>
           )}
 
-          {/* Fee Schedule */}
+          {/* Fee Schedule — flat pay-as-you-go */}
           <div className="rounded-xl border overflow-hidden stagger-5" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
             <div className="px-5 py-3" style={{ background: "#141416" }}>
               <h2 className="text-sm font-semibold text-white">Fee Schedule</h2>
@@ -209,24 +177,19 @@ export default function UsagePage() {
               <thead>
                 <tr className="border-t" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
                   <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase" style={{ color: "#52525B" }}>Fee Type</th>
-                  <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase" style={{ color: "#52525B" }}>Free</th>
-                  <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase" style={{ color: "#52525B" }}>Pro</th>
-                  <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase" style={{ color: "#52525B" }}>Enterprise</th>
+                  <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase" style={{ color: "#52525B" }}>Rate</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { label: "Monthly", free: "$0", pro: "$100", ent: "$1,000" },
-                  { label: "LLM Markup", free: "40%", pro: "20%", ent: "10%" },
-                  { label: "Maker Fee", free: "0.10%", pro: "0.06%", ent: "0.02%" },
-                  { label: "Taker Fee", free: "0.07%", pro: "0.04%", ent: "0.01%" },
-                  { label: "Rate Limit", free: "300/min", pro: "1,000/min", ent: "Unlimited" },
+                  { label: "LLM Markup", rate: "20%" },
+                  { label: "Maker Fee", rate: "0.01%" },
+                  { label: "Taker Fee", rate: "0.01%" },
+                  { label: "Rate Limit", rate: "1,000/min" },
                 ].map((row) => (
                   <tr key={row.label} className="border-t" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
                     <td className="px-5 py-3 text-sm text-white">{row.label}</td>
-                    <td className="px-5 py-3 text-sm text-right font-mono" style={{ color: tier === "FREE" ? "#00FF88" : "#71717A" }}>{row.free}</td>
-                    <td className="px-5 py-3 text-sm text-right font-mono" style={{ color: tier === "PRO" ? "#A78BFA" : "#71717A" }}>{row.pro}</td>
-                    <td className="px-5 py-3 text-sm text-right font-mono" style={{ color: tier === "ENTERPRISE" ? "#FBBF24" : "#71717A" }}>{row.ent}</td>
+                    <td className="px-5 py-3 text-sm text-right font-mono" style={{ color: "#A78BFA" }}>{row.rate}</td>
                   </tr>
                 ))}
               </tbody>

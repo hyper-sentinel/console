@@ -27,8 +27,17 @@ export interface ApiError {
   error: string;
   message?: string;
   tool?: string;
-  tier?: string;
-  upgrade?: string;
+  status?: number;
+  // 402 quota payload
+  quotaData?: {
+    error: string;
+    message: string;
+    prompts_used: number;
+    prompt_limit: number;
+    window_days: number;
+    resets_at: string;
+    checkout_url: string;
+  };
 }
 
 export interface AuthResponse {
@@ -46,23 +55,33 @@ export interface AuthResponse {
 }
 
 export interface BillingStatus {
-  tier: string;
-  subscription: string;
+  plan: string;
+  payment_status: string;
   monthly_api_calls: number;
-  monthly_limit: string;
   rate_limit_per_min: number;
   your_fees: {
     llm_markup: string;
     maker_fee: string;
     taker_fee: string;
   };
-  upgrade: Record<string, unknown>;
+  // Spend (month-to-date) — surfaced by the gateway GetStatus
+  platform_fees?: string; // e.g. "$6.92"
+  monthly_tokens?: number;
+  // Payment method on file (active users only). Card → brand+last4; Link → type only.
+  payment_method_type?: string; // "card" | "link" | ...
+  card_brand?: string;
+  card_last4?: string;
+  // Free-tier quota fields
+  prompts_used: number;
+  prompt_limit: number;
+  window_days: number;
+  resets_at: string;
+  gated: boolean;
 }
 
 export interface ApiKeyResponse {
   api_key: string;
   key_prefix: string;
-  tier: string;
 }
 
 // ── Client ─────────────────────────────────────────────────
@@ -136,8 +155,17 @@ class SentinelAPI {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-      throw new Error(err.error || err.message || `API error: ${res.status}`);
+      const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      if (res.status === 402) {
+        const apiErr: ApiError = {
+          error: body.error || "quota_exceeded",
+          message: body.message || "Quota exceeded",
+          status: 402,
+          quotaData: body,
+        };
+        throw Object.assign(new Error(apiErr.message), apiErr);
+      }
+      throw new Error(body.error || body.message || `API error: ${res.status}`);
     }
 
     return res.json();
@@ -227,16 +255,16 @@ class SentinelAPI {
     return this.fetchJSON("/api/v1/billing/history");
   }
 
-  async subscribe(plan: "pro" | "enterprise"): Promise<{ url: string }> {
-    return this.fetchJSON<{ url: string }>(`/api/v1/billing/subscribe?plan=${plan}`, {
+  // Pay-as-you-go: plan is ignored by the gateway; kept optional for compatibility.
+  async subscribe(_plan: string = ""): Promise<{ url: string; checkout_url?: string }> {
+    return this.fetchJSON<{ url: string; checkout_url?: string }>(`/api/v1/billing/subscribe`, {
       method: "POST",
     });
   }
 
-  async createCheckout(plan: string): Promise<{ url: string }> {
-    return this.fetchJSON<{ url: string }>("/api/v1/billing/checkout", {
+  async createCheckout(_plan: string = ""): Promise<{ url: string; checkout_url?: string }> {
+    return this.fetchJSON<{ url: string; checkout_url?: string }>("/api/v1/billing/subscribe", {
       method: "POST",
-      body: JSON.stringify({ plan }),
     });
   }
 
@@ -279,18 +307,25 @@ class SentinelAPI {
       ? localStorage.getItem(`sentinel_${frontendProvider}_key`)
       : null;
     const gatewayProvider = this.mapProvider(frontendProvider) || (options?.provider ? this.mapProvider(options.provider) : "");
+    const turnId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     return this.fetchJSON("/api/v1/llm/chat", {
       method: "POST",
+      headers: { "X-Sentinel-Turn-Id": turnId },
       body: JSON.stringify({
         messages,
         ai_key: aiKey,
         provider: gatewayProvider,
+        turn_id: turnId,
         ...options,
         // Ensure mapped provider isn't overwritten by options.provider
         ...(gatewayProvider ? { provider: gatewayProvider } : {}),
       }),
     });
+  }
+
+  async getPortalSession(): Promise<{ portal_url: string }> {
+    return this.fetchJSON<{ portal_url: string }>("/api/v1/billing/portal");
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -442,6 +477,47 @@ class SentinelAPI {
 
   async vaultDeleteConfig(): Promise<{ message: string }> {
     return this.fetchJSON("/api/v1/vault/config", { method: "DELETE" });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  STRATEGY — Algo Trading (v0.6.0)
+  // ═══════════════════════════════════════════════════════════
+
+  async strategyStatus() {
+    return this.fetchJSON("/api/v1/strategy/status");
+  }
+
+  async strategyStart() {
+    return this.fetchJSON("/api/v1/strategy/start", { method: "POST" });
+  }
+
+  async strategyStop() {
+    return this.fetchJSON("/api/v1/strategy/stop", { method: "POST" });
+  }
+
+  async strategyConfig(config: {
+    algo?: string; symbol?: string; venue?: string;
+    interval?: string; trade_usd?: number; leverage?: number;
+  }) {
+    return this.fetchJSON("/api/v1/strategy/config", {
+      method: "POST",
+      body: JSON.stringify(config),
+    });
+  }
+
+  async strategySetAlgo(name: string, params?: Record<string, unknown>) {
+    return this.fetchJSON("/api/v1/strategy/algo", {
+      method: "POST",
+      body: JSON.stringify({ algo: name, params }),
+    });
+  }
+
+  async listAlgos() {
+    return this.fetchJSON("/api/v1/algos");
+  }
+
+  async algoInfo(name: string) {
+    return this.fetchJSON(`/api/v1/algos/${name}`);
   }
 
   // ═══════════════════════════════════════════════════════════

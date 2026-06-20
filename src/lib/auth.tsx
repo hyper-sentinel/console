@@ -13,7 +13,7 @@ import {
 
 // ── Types ─────────────────────────────────────────────────
 export type AIProvider = "claude" | "gpt" | "gemini" | "grok" | "ollama";
-export type Tier = "free" | "pro" | "enterprise";
+export type Tier = "pay-as-you-go" | "free" | "pro" | "enterprise";
 
 export interface User {
   id: string;
@@ -21,7 +21,7 @@ export interface User {
   name?: string;
   provider?: AIProvider;
   model?: string;
-  tier: Tier;
+  tier?: Tier;
   token: string;
 }
 
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const newUser: User = {
         id: resp.user_id,
         email,
-        tier: (resp.tier as Tier) || "free",
+        tier: (resp.tier as Tier) || "pay-as-you-go",
         token: resp.token,
       };
       persistUser(newUser);
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: resp.user_id,
         email,
         name,
-        tier: (resp.tier as Tier) || "free",
+        tier: (resp.tier as Tier) || "pay-as-you-go",
         token: resp.token,
       };
       persistUser(newUser);
@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: resp.user_id,
         provider,
         model: info.model,
-        tier: (resp.tier as Tier) || "free",
+        tier: (resp.tier as Tier) || "pay-as-you-go",
         token: sentinelKey || `sentinel_${Date.now().toString(36)}`,
       };
       persistUser(newUser);
@@ -223,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           id: `usr_local_${Date.now()}`,
           provider,
           model: info.model,
-          tier: "free",
+          tier: "pay-as-you-go",
           token: `local_${Date.now().toString(36)}`,
         };
         persistUser(fallbackUser);
@@ -240,6 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     api.clearAuth();
     localStorage.removeItem("sentinel_user");
+    localStorage.removeItem("sentinel_wallets_configured");
     setPendingKeys(null);
   }, []);
 

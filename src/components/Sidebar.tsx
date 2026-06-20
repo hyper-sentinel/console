@@ -6,8 +6,6 @@ import { useAuth } from "@/lib/auth";
 import {
   LayoutDashboard,
   LineChart,
-  Zap,
-  Bot,
   Shield,
   CreditCard,
   Settings,
@@ -24,8 +22,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: LineChart, label: "Terminal", href: "/terminal" },
-  { icon: Zap, label: "Strategies", href: "/strategies" },
-  { icon: Bot, label: "AI Agent", href: "/agent" },
   { icon: Shield, label: "Monitors", href: "/monitors" },
   { icon: CreditCard, label: "Billing", href: "/billing" },
   { icon: Settings, label: "Settings", href: "/settings" },
