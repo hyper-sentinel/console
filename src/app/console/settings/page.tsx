@@ -96,9 +96,13 @@ export default function SettingsPage() {
               style={{ background: "#0A0A0B", color: "#E4E4E7", border: "1px solid rgba(255,255,255,0.08)" }}
             >
               <option value="claude">Anthropic (Claude)</option>
-              <option value="openai">OpenAI (GPT)</option>
+              <option value="gpt">OpenAI (GPT)</option>
               <option value="gemini">Google (Gemini)</option>
               <option value="grok">xAI (Grok)</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="zhipu">Zhipu AI (GLM)</option>
+              <option value="mistral">Mistral</option>
+              <option value="ollama">Ollama (Local)</option>
             </select>
           </div>
           <div>

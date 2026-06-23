@@ -1,5 +1,5 @@
 /**
- * Sentinel API Client — 60+ tools, JWT auth, Stripe billing.
+ * Sentinel API Client — 69 tools, JWT auth, Stripe billing.
  *
  * Production: https://api.hyper-sentinel.com
  * Auth: Bearer JWT -or- X-API-Key header

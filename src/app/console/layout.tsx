@@ -131,12 +131,14 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
       >
         {/* Logo */}
         <div className="px-4 py-4 border-b flex items-center gap-3 shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <Image src="/brand/sentinel-logo.jpg" alt="Sentinel" width={28} height={28} className="rounded-lg shrink-0" />
-          {!sidebarCollapsed && (
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">Sentinel Console</p>
-            </div>
-          )}
+          <a href="https://hyper-sentinel.com" className="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity" title="Back to hyper-sentinel.com">
+            <Image src="/brand/sentinel-logo.jpg" alt="Sentinel" width={28} height={28} className="rounded-lg shrink-0" />
+            {!sidebarCollapsed && (
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">Sentinel Console</p>
+              </div>
+            )}
+          </a>
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="ml-auto text-xs opacity-50 hover:opacity-100 transition shrink-0"

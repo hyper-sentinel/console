@@ -12,7 +12,7 @@ import {
 } from "./vault";
 
 // ── Types ─────────────────────────────────────────────────
-export type AIProvider = "claude" | "gpt" | "gemini" | "grok" | "ollama";
+export type AIProvider = "claude" | "gpt" | "gemini" | "grok" | "deepseek" | "zhipu" | "ollama" | "mistral";
 export type Tier = "pay-as-you-go" | "free" | "pro" | "enterprise";
 
 export interface User {
@@ -46,10 +46,31 @@ interface AuthState {
 export const PROVIDER_INFO: Record<AIProvider, { name: string; model: string; keyPrefix: string; url: string }> = {
   claude: { name: "Claude", model: "claude-sonnet-4-20250514", keyPrefix: "sk-ant-", url: "https://console.anthropic.com/settings/keys" },
   gpt: { name: "ChatGPT", model: "gpt-4o", keyPrefix: "sk-", url: "https://platform.openai.com/api-keys" },
-  gemini: { name: "Gemini", model: "gemini-2.0-flash", keyPrefix: "AI", url: "https://aistudio.google.com/apikey" },
+  gemini: { name: "Gemini", model: "gemini-2.0-flash", keyPrefix: "AIza", url: "https://aistudio.google.com/apikey" },
   grok: { name: "Grok", model: "grok-3-mini-fast", keyPrefix: "xai-", url: "https://console.x.ai/" },
+  deepseek: { name: "DeepSeek", model: "deepseek-chat", keyPrefix: "sk-", url: "https://platform.deepseek.com/api_keys" },
+  zhipu: { name: "Zhipu AI (GLM)", model: "glm-5.2", keyPrefix: "glm-", url: "https://open.bigmodel.cn/usercenter/apikeys" },
   ollama: { name: "Ollama", model: "local", keyPrefix: "", url: "http://localhost:11434" },
+  mistral: { name: "Mistral", model: "mistral-large-latest", keyPrefix: "mistral-", url: "https://console.mistral.ai/api-keys" },
 };
+
+/**
+ * Auto-detect AI provider from key prefix — same logic as the CLI.
+ * Order matters: check longer/more-specific prefixes first.
+ */
+export function detectProvider(key: string): AIProvider | null {
+  if (!key || key.length < 4) return null;
+  if (key.startsWith("sk-ant-")) return "claude";
+  if (key.startsWith("xai-")) return "grok";
+  if (key.startsWith("AIza")) return "gemini";
+  if (key.startsWith("glm-")) return "zhipu";
+  if (key.startsWith("mistral-")) return "mistral";
+  // DeepSeek also uses "sk-" but their keys are typically longer and don't have "ant"
+  // OpenAI sk- keys are the catch-all for "sk-" prefix
+  if (key.startsWith("sk-")) return "gpt";
+  return null;
+}
+
 
 // ── Context ────────────────────────────────────────────────
 const AuthContext = createContext<AuthState>({

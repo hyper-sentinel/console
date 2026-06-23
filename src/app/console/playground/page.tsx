@@ -79,10 +79,13 @@ KEY TOOLS:
 Use tools to fetch real data — never fabricate prices or positions.`;
 
 const GATEWAY_PROVIDER: Record<string, string> = {
-  gemini: "google", claude: "anthropic", gpt: "openai", openai: "openai", grok: "xai",
+  gemini: "google", claude: "anthropic", gpt: "openai", openai: "openai",
+  grok: "xai", deepseek: "deepseek", zhipu: "zhipu", mistral: "mistral",
 };
 const DEFAULT_MODELS: Record<string, string> = {
-  google: "gemini-2.0-flash", anthropic: "claude-sonnet-4-20250514", openai: "gpt-4o", xai: "grok-2",
+  google: "gemini-2.0-flash", anthropic: "claude-sonnet-4-20250514",
+  openai: "gpt-4o", xai: "grok-2", deepseek: "deepseek-chat",
+  zhipu: "glm-5.2", mistral: "mistral-large-latest",
 };
 
 export default function PlaygroundPage() {
@@ -133,7 +136,12 @@ export default function PlaygroundPage() {
           body: JSON.stringify({ messages: internalHistory, ai_key: aiKey, provider: gatewayProvider, model }),
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          if (res.status === 429 || res.status === 402) {
+            throw new Error("Rate limit reached — add a payment method at Settings → Billing to continue.");
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
 
         let rawText = "";
 
@@ -253,6 +261,9 @@ export default function PlaygroundPage() {
     openai: "GPT-4o",
     gemini: "Gemini",
     grok: "Grok",
+    deepseek: "DeepSeek",
+    zhipu: "GLM",
+    mistral: "Mistral",
   };
 
   return (
@@ -275,9 +286,12 @@ export default function PlaygroundPage() {
             style={{ background: "#1A1A1E", color: "#A1A1AA", border: "1px solid rgba(255,255,255,0.08)" }}
           >
             <option value="claude">Claude</option>
-            <option value="openai">GPT-4</option>
+            <option value="gpt">GPT-4o</option>
             <option value="gemini">Gemini</option>
             <option value="grok">Grok</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="zhipu">GLM</option>
+            <option value="mistral">Mistral</option>
           </select>
           <button
             onClick={() => setMessages([])}
