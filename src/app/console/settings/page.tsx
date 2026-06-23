@@ -16,14 +16,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     api.getBillingStatus().then((d) => setBilling(d as unknown as Record<string, unknown>)).catch(() => {});
-    const stored = localStorage.getItem("sentinel_ai_key") || "";
     const storedProvider = localStorage.getItem("sentinel_provider") || "claude";
-    setAiKey(stored);
     setProvider(storedProvider);
+    const stored = localStorage.getItem(`sentinel_${storedProvider}_key`) || "";
+    setAiKey(stored);
   }, []);
 
   const saveProviderKey = () => {
-    localStorage.setItem("sentinel_ai_key", aiKey);
+    localStorage.setItem(`sentinel_${provider}_key`, aiKey);
     localStorage.setItem("sentinel_provider", provider);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);

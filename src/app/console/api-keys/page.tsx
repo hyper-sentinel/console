@@ -19,6 +19,7 @@ export default function ApiKeysPage() {
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const loadKeys = useCallback(async () => {
     try {
@@ -44,7 +45,8 @@ export default function ApiKeysPage() {
       loadKeys();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to create key";
-      alert(message);
+      setError(message);
+      setTimeout(() => setError(null), 5000);
     } finally {
       setCreating(false);
     }
@@ -57,7 +59,8 @@ export default function ApiKeysPage() {
       await api.deleteApiKey(keyId);
       loadKeys();
     } catch {
-      alert("Failed to revoke key");
+      setError("Failed to revoke key. Try again.");
+      setTimeout(() => setError(null), 5000);
     } finally {
       setDeletingId(null);
     }
@@ -73,6 +76,17 @@ export default function ApiKeysPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-10">
+      {/* Inline error toast */}
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-xl text-sm font-mono flex items-center justify-between" style={{
+          background: "rgba(239,68,68,0.08)",
+          border: "1px solid rgba(239,68,68,0.2)",
+          color: "#FCA5A5",
+        }}>
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-xs ml-4 hover:text-white transition" style={{ color: "#71717A" }}>✕</button>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-8 stagger-1">
         <div>
           <h1 className="text-2xl font-semibold text-white mb-1">API Keys</h1>

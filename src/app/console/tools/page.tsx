@@ -19,7 +19,7 @@ const TOOL_CATEGORIES: Record<string, { icon: string; color: string; tools: stri
   "Market Data": {
     icon: "📊",
     color: "#00E5FF",
-    tools: ["get_crypto_price", "get_crypto_top_n", "get_crypto_batch_prices", "search_crypto", "get_crypto_chart", "get_stock_price", "get_hl_orderbook", "get_hl_positions", "get_hl_account_info", "get_hl_config", "aster_ticker", "aster_orderbook", "aster_klines", "aster_funding_rate", "aster_exchange_info", "aster_balance", "aster_positions", "aster_account_info", "aster_open_orders", "aster_diagnose", "aster_ping", "get_polymarket_markets", "search_polymarket", "get_polymarket_orderbook", "get_polymarket_price", "get_polymarket_positions"],
+    tools: ["get_crypto_price", "get_crypto_top_n", "get_crypto_batch_prices", "search_crypto", "get_crypto_chart", "get_stock_price", "get_stock_info", "get_hl_orderbook", "get_hl_positions", "get_hl_account_info", "get_hl_config", "aster_ticker", "aster_orderbook", "aster_klines", "aster_funding_rate", "aster_exchange_info", "aster_balance", "aster_positions", "aster_account_info", "aster_open_orders", "aster_diagnose", "aster_ping", "get_polymarket_markets", "search_polymarket", "get_polymarket_orderbook", "get_polymarket_price", "get_polymarket_positions"],
   },
   "Intelligence": {
     icon: "🧠",
@@ -30,16 +30,6 @@ const TOOL_CATEGORIES: Record<string, { icon: string; color: string; tools: stri
     icon: "🏛",
     color: "#FBBF24",
     tools: ["get_economic_dashboard", "get_fred_series", "search_fred"],
-  },
-  "Social": {
-    icon: "C",
-    color: "#EC4899",
-    tools: ["tg_read_channel", "tg_send_message", "tg_search_messages", "tg_list_channels", "discord_read_channel", "discord_send_message", "discord_search_messages", "discord_list_guilds", "discord_list_channels"],
-  },
-  "System": {
-    icon: "T",
-    color: "#6B7280",
-    tools: ["open_in_browser", "open_app"],
   },
 };
 
