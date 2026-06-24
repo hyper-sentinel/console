@@ -8,7 +8,10 @@ export default function SettingsPage() {
   const { user, logout } = useAuth();
   const [billing, setBilling] = useState<Record<string, unknown> | null>(null);
   const [aiKey, setAiKey] = useState("");
-  const [provider, setProvider] = useState("claude");
+  const [provider, setProvider] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("sentinel_provider") || "claude";
+    return "claude";
+  });
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);

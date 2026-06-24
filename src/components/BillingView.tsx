@@ -73,7 +73,7 @@ export function BillingView() {
 
   const promptsUsed = billing?.prompts_used ?? 0;
   const promptLimit = billing?.prompt_limit ?? 10;
-  const isGated = billing?.gated === true || (!paymentActive && promptsUsed >= promptLimit);
+  const isGated = billing?.gated === true;
   const resetsAt = billing?.resets_at ? new Date(billing.resets_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
 
   const platformFees = billing?.platform_fees ?? "$0.00";

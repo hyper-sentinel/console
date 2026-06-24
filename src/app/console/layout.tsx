@@ -151,25 +151,27 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
         {/* Trading terminal — web app NOT live yet. Non-navigating "coming soon" state
             (the /dashboard terminal isn't shipped as a web app); nudge users to the CLI. */}
         <div className="px-3 py-3 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <div
-            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold cursor-default select-none"
+          <a
+            href="https://pypi.org/project/hyper-sentinel/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all hover:border-purple-500/30"
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "#52525B",
+              background: "rgba(139,92,246,0.08)",
+              border: "1px solid rgba(139,92,246,0.2)",
+              color: "#A78BFA",
             }}
-            title="Web terminal coming soon — use the CLI: pip install hyper-sentinel"
+            title="Install the Sentinel CLI: pip install hyper-sentinel"
           >
             {!sidebarCollapsed ? (
               <>
                 <Play size={14} />
-                <span>Terminal</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA" }}>SOON</span>
+                <span className="font-mono text-xs">pip install hyper-sentinel</span>
               </>
             ) : (
               <Play size={14} />
             )}
-          </div>
+          </a>
         </div>
 
         {/* Nav Sections */}

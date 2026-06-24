@@ -410,53 +410,6 @@ class SentinelAPI {
   asterSetLeverage(symbol: string, leverage: number) { return this.call("aster_set_leverage", { symbol, leverage }); }
 
   // ═══════════════════════════════════════════════════════════
-  //  POLYMARKET — Prediction Markets (Pro)
-  // ═══════════════════════════════════════════════════════════
-
-  getPolymarketMarkets() { return this.call("get_polymarket_markets"); }
-  searchPolymarket(query: string) { return this.call("search_polymarket", { query }); }
-  getPolymarketOrderbook(marketId: string) { return this.call("get_polymarket_orderbook", { market_id: marketId }); }
-  getPolymarketPrice(marketId: string) { return this.call("get_polymarket_price", { market_id: marketId }); }
-  getPolymarketPositions() { return this.call("get_polymarket_positions"); }
-  buyPolymarket(marketId: string, outcome: string, amount: number) {
-    return this.call("buy_polymarket", { market_id: marketId, outcome, amount });
-  }
-  sellPolymarket(marketId: string, outcome: string, amount: number) {
-    return this.call("sell_polymarket", { market_id: marketId, outcome, amount });
-  }
-  placePolymarketLimit(marketId: string, outcome: string, price: number, amount: number) {
-    return this.call("place_polymarket_limit", { market_id: marketId, outcome, price, amount });
-  }
-  cancelPolymarketOrder(orderId: string) { return this.call("cancel_polymarket_order", { order_id: orderId }); }
-  cancelAllPolymarket() { return this.call("cancel_all_polymarket_orders"); }
-
-  // ═══════════════════════════════════════════════════════════
-  //  TELEGRAM — Channel Monitoring (Pro)
-  // ═══════════════════════════════════════════════════════════
-
-  tgReadChannel(channel: string, limit = 20) { return this.call("tg_read_channel", { channel, limit }); }
-  tgSearchMessages(query: string) { return this.call("tg_search_messages", { query }); }
-  tgListChannels() { return this.call("tg_list_channels"); }
-  tgSendMessage(channel: string, message: string) { return this.call("tg_send_message", { channel, message }); }
-
-  // ═══════════════════════════════════════════════════════════
-  //  DISCORD — Server Monitoring (Pro)
-  // ═══════════════════════════════════════════════════════════
-
-  discordReadChannel(channelId: string, limit = 20) { return this.call("discord_read_channel", { channel_id: channelId, limit }); }
-  discordSearchMessages(query: string) { return this.call("discord_search_messages", { query }); }
-  discordListGuilds() { return this.call("discord_list_guilds"); }
-  discordListChannels(guildId: string) { return this.call("discord_list_channels", { guild_id: guildId }); }
-  discordSendMessage(channelId: string, content: string) { return this.call("discord_send_message", { channel_id: channelId, content }); }
-
-  // ═══════════════════════════════════════════════════════════
-  //  BROWSER
-  // ═══════════════════════════════════════════════════════════
-
-  openInBrowser(url: string) { return this.call("open_in_browser", { url }); }
-  openApp(appName: string) { return this.call("open_app", { app_name: appName }); }
-
-  // ═══════════════════════════════════════════════════════════
   //  VAULT — Encrypted Config Storage (SecretKey)
   // ═══════════════════════════════════════════════════════════
 
@@ -477,47 +430,6 @@ class SentinelAPI {
 
   async vaultDeleteConfig(): Promise<{ message: string }> {
     return this.fetchJSON("/api/v1/vault/config", { method: "DELETE" });
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  //  STRATEGY — Algo Trading (v0.6.0)
-  // ═══════════════════════════════════════════════════════════
-
-  async strategyStatus() {
-    return this.fetchJSON("/api/v1/strategy/status");
-  }
-
-  async strategyStart() {
-    return this.fetchJSON("/api/v1/strategy/start", { method: "POST" });
-  }
-
-  async strategyStop() {
-    return this.fetchJSON("/api/v1/strategy/stop", { method: "POST" });
-  }
-
-  async strategyConfig(config: {
-    algo?: string; symbol?: string; venue?: string;
-    interval?: string; trade_usd?: number; leverage?: number;
-  }) {
-    return this.fetchJSON("/api/v1/strategy/config", {
-      method: "POST",
-      body: JSON.stringify(config),
-    });
-  }
-
-  async strategySetAlgo(name: string, params?: Record<string, unknown>) {
-    return this.fetchJSON("/api/v1/strategy/algo", {
-      method: "POST",
-      body: JSON.stringify({ algo: name, params }),
-    });
-  }
-
-  async listAlgos() {
-    return this.fetchJSON("/api/v1/algos");
-  }
-
-  async algoInfo(name: string) {
-    return this.fetchJSON(`/api/v1/algos/${name}`);
   }
 
   // ═══════════════════════════════════════════════════════════

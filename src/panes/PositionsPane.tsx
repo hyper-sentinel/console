@@ -1,30 +1,27 @@
 "use client";
 import { useState } from "react";
-import { useHLPositions, useAsterPositions, usePolymarketPositions, useCloseHLPosition } from "@/lib/hooks";
+import { useHLPositions, useAsterPositions, useCloseHLPosition } from "@/lib/hooks";
 
-type Venue = "hl" | "aster" | "poly";
+type Venue = "hl" | "aster";
 
 const VENUES = [
   { id: "hl" as Venue, label: "Hyperliquid", color: "var(--accent-cyan)" },
   { id: "aster" as Venue, label: "Aster", color: "#8b5cf6" },
-  { id: "poly" as Venue, label: "Polymarket", color: "#fbbf24" },
 ];
 
 export default function PositionsPane() {
   const [venue, setVenue] = useState<Venue>("hl");
   const { data: hlRaw, isLoading: hlLoading } = useHLPositions();
   const { data: asterRaw, isLoading: asterLoading } = useAsterPositions();
-  const { data: polyRaw, isLoading: polyLoading } = usePolymarketPositions();
   const closePosition = useCloseHLPosition();
 
   const hlPositions = Array.isArray(hlRaw) ? hlRaw : [];
   const asterPositions = Array.isArray(asterRaw) ? asterRaw : [];
-  const polyPositions = Array.isArray(polyRaw) ? polyRaw : [];
 
-  const isLoading = venue === "hl" ? hlLoading : venue === "aster" ? asterLoading : polyLoading;
-  const positions = venue === "hl" ? hlPositions : venue === "aster" ? asterPositions : polyPositions;
+  const isLoading = venue === "hl" ? hlLoading : asterLoading;
+  const positions = venue === "hl" ? hlPositions : asterPositions;
 
-  const totalCount = hlPositions.length + asterPositions.length + polyPositions.length;
+  const totalCount = hlPositions.length + asterPositions.length;
 
   const handleClose = (coin: string) => {
     if (confirm(`Close entire ${coin} position?`)) {
@@ -70,7 +67,7 @@ export default function PositionsPane() {
           <table className="w-full">
             <thead>
               <tr className="text-[10px] uppercase" style={{ color: "var(--text-dim)", borderBottom: "1px solid var(--border)" }}>
-                <th className="text-left py-1.5 px-2 font-semibold">{venue === "poly" ? "Market" : "Symbol"}</th>
+                <th className="text-left py-1.5 px-2 font-semibold">Symbol</th>
                 <th className="text-right py-1.5 px-2 font-semibold">Side</th>
                 <th className="text-right py-1.5 px-2 font-semibold">Size</th>
                 <th className="text-right py-1.5 px-2 font-semibold">Entry</th>

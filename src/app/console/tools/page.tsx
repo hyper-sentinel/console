@@ -11,25 +11,55 @@ interface Tool {
 }
 
 const TOOL_CATEGORIES: Record<string, { icon: string; color: string; tools: string[] }> = {
-  "Trading": {
-    icon: "📈",
-    color: "#00FF88",
-    tools: ["place_hl_order", "close_hl_position", "cancel_hl_order", "get_hl_open_orders", "aster_place_order", "aster_cancel_order", "aster_cancel_all_orders", "aster_set_leverage", "buy_polymarket", "sell_polymarket", "place_polymarket_limit", "cancel_polymarket_order", "cancel_all_polymarket_orders"],
-  },
-  "Market Data": {
+  "Crypto": {
     icon: "📊",
-    color: "#00E5FF",
-    tools: ["get_crypto_price", "get_crypto_top_n", "get_crypto_batch_prices", "search_crypto", "get_crypto_chart", "get_stock_price", "get_stock_info", "get_hl_orderbook", "get_hl_positions", "get_hl_account_info", "get_hl_config", "aster_ticker", "aster_orderbook", "aster_klines", "aster_funding_rate", "aster_exchange_info", "aster_balance", "aster_positions", "aster_account_info", "aster_open_orders", "aster_diagnose", "aster_ping", "get_polymarket_markets", "search_polymarket", "get_polymarket_orderbook", "get_polymarket_price", "get_polymarket_positions"],
+    color: "#00FF88",
+    tools: ["get_crypto_price", "get_crypto_top_n", "search_crypto"],
   },
-  "Intelligence": {
-    icon: "🧠",
-    color: "#8B5CF6",
-    tools: ["get_news_recap", "get_news_sentiment", "get_intelligence_reports", "get_report_detail", "get_trending_tokens", "get_top_mentions", "search_mentions", "get_trending_narratives", "get_token_news", "search_x"],
+  "Stocks": {
+    icon: "📈",
+    color: "#00E5FF",
+    tools: ["get_stock_price", "get_stock_info", "get_stock_news", "get_stock_history", "get_analyst_recs", "run_stock_analysis"],
   },
   "Macro": {
     icon: "🏛",
     color: "#FBBF24",
-    tools: ["get_economic_dashboard", "get_fred_series", "search_fred"],
+    tools: ["get_fred_series", "search_fred", "get_economic_dashboard", "get_yield_curve"],
+  },
+  "Y2 Intelligence": {
+    icon: "📰",
+    color: "#F97316",
+    tools: ["get_news_sentiment", "get_news_recap", "get_intelligence_reports", "get_report_detail", "get_y2_feeds", "get_report_audio", "list_y2_profiles"],
+  },
+  "Social": {
+    icon: "🐦",
+    color: "#38BDF8",
+    tools: ["get_trending_tokens", "get_top_mentions", "search_mentions", "get_trending_narratives", "get_token_news", "search_x"],
+  },
+  "Hyperliquid": {
+    icon: "⚡",
+    color: "#00FF88",
+    tools: ["get_hl_config", "get_hl_account_info", "get_hl_positions", "get_hl_orderbook", "get_hl_open_orders", "get_hl_tradfi_assets", "get_hl_tradfi_price", "place_hl_order", "cancel_hl_order", "close_hl_position", "set_hl_leverage", "approve_hl_builder_fee"],
+  },
+  "Aster DEX": {
+    icon: "🚀",
+    color: "#A78BFA",
+    tools: ["aster_ticker", "aster_klines", "aster_positions", "aster_orderbook", "aster_funding_rate", "aster_exchange_info", "aster_balance", "aster_account_info", "aster_open_orders", "aster_place_order", "aster_cancel_order", "aster_cancel_all_orders", "aster_set_leverage", "aster_diagnose", "aster_ping"],
+  },
+  "DEX Analytics": {
+    icon: "🔗",
+    color: "#22C55E",
+    tools: ["dexscreener_search", "dexscreener_pair", "dexscreener_token_lookup", "dexscreener_trending"],
+  },
+  "Quantitative": {
+    icon: "🔬",
+    color: "#8B5CF6",
+    tools: ["get_ta_indicators", "get_ta_signal", "get_klines", "get_risk_metrics", "get_ml_signals", "get_timeseries_forecast", "get_options_analysis", "get_options_chain", "get_options_expirations"],
+  },
+  "Portfolio": {
+    icon: "📦",
+    color: "#71717A",
+    tools: ["get_portfolio_summary", "get_portfolio_risk", "get_usage_summary"],
   },
 };
 

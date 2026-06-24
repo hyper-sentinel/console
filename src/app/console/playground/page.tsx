@@ -74,7 +74,7 @@ KEY TOOLS:
   get_trending_tokens — no params — trending tokens
   get_hl_positions — no params — open perp positions
   get_hl_account_info — no params — equity, margin
-  get_polymarket_markets — params: {limit: 10} — prediction markets
+  dexscreener_trending — no params — trending DEX tokens
 
 Use tools to fetch real data — never fabricate prices or positions.`;
 
@@ -124,7 +124,7 @@ export default function PlaygroundPage() {
         ...[...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
       ];
 
-      const canStream = ["anthropic", "openai", "xai"].includes(gatewayProvider);
+      const canStream = ["anthropic", "openai", "xai", "google"].includes(gatewayProvider);
       const allToolCalls: ToolCall[] = [];
 
       for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {

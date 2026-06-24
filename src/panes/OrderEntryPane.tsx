@@ -3,12 +3,11 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { useAsterFundingRate, useAsterSetLeverage } from "@/lib/hooks";
 
-type Exchange = "hl" | "aster" | "poly";
+type Exchange = "hl" | "aster";
 
 const EXCHANGES: { id: Exchange; name: string; color: string; symbols: string[] }[] = [
   { id: "hl", name: "Hyperliquid", color: "var(--accent-cyan)", symbols: ["BTC", "ETH", "SOL", "DOGE", "ARB", "SUI", "AVAX", "LINK", "WIF", "PEPE"] },
   { id: "aster", name: "Aster DEX", color: "#8b5cf6", symbols: ["BTCUSDT", "ETHUSDT", "SOLUSDT", "DOGEUSDT", "ARBUSDT", "SUIUSDT"] },
-  { id: "poly", name: "Polymarket", color: "#fbbf24", symbols: [] },
 ];
 
 const ORDER_TYPES = ["Market", "Limit", "Stop"];
@@ -24,9 +23,6 @@ export default function OrderEntryPane() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  // Polymarket fields
-  const [polyMarketId, setPolyMarketId] = useState("");
-  const [polyOutcome, setPolyOutcome] = useState("Yes");
 
   // Aster funding rate + leverage
   const asterSymbol = exchange === "aster" ? symbol : "";
@@ -44,11 +40,7 @@ export default function OrderEntryPane() {
   const currentExchange = EXCHANGES.find((e) => e.id === exchange)!;
 
   const handleSubmit = async () => {
-    if (exchange === "poly") {
-      if (!polyMarketId.trim() || !size) return;
-    } else {
-      if (!size || parseFloat(size) <= 0) return;
-    }
+    if (!size || parseFloat(size) <= 0) return;
 
     setSubmitting(true);
     setResult(null);
@@ -56,19 +48,10 @@ export default function OrderEntryPane() {
     try {
       if (exchange === "hl") {
         await api.placeHLOrder(symbol, side, parseFloat(size), orderType !== "Market" ? parseFloat(price) : undefined, orderType.toLowerCase());
-      } else if (exchange === "aster") {
-        await api.asterPlaceOrder(symbol, side.toUpperCase(), parseFloat(size), orderType !== "Market" ? parseFloat(price) : undefined, orderType.toUpperCase());
       } else {
-        // Polymarket
-        if (orderType === "Limit") {
-          await api.placePolymarketLimit(polyMarketId, polyOutcome, parseFloat(price), parseFloat(size));
-        } else if (side === "buy") {
-          await api.buyPolymarket(polyMarketId, polyOutcome, parseFloat(size));
-        } else {
-          await api.sellPolymarket(polyMarketId, polyOutcome, parseFloat(size));
-        }
+        await api.asterPlaceOrder(symbol, side.toUpperCase(), parseFloat(size), orderType !== "Market" ? parseFloat(price) : undefined, orderType.toUpperCase());
       }
-      setResult(`OK: ${side.toUpperCase()} ${exchange === "poly" ? polyOutcome : size + " " + symbol} submitted`);
+      setResult(`OK: ${side.toUpperCase()} ${size} ${symbol} submitted`);
       setSize("");
       setPrice("");
     } catch (e) {
@@ -98,9 +81,8 @@ export default function OrderEntryPane() {
         ))}
       </div>
 
-      {/* Symbol (HL / Aster) */}
-      {exchange !== "poly" && (
-        <div>
+      {/* Symbol */}
+      <div>
           <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>Symbol</label>
           <select
             value={symbol}
@@ -112,47 +94,12 @@ export default function OrderEntryPane() {
               <option key={s} value={s} style={{ background: "#0a0a0a" }}>{s}</option>
             ))}
           </select>
-        </div>
-      )}
+      </div>
 
-      {/* Polymarket Market ID */}
-      {exchange === "poly" && (
-        <>
-          <div>
-            <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>Market ID</label>
-            <input
-              value={polyMarketId}
-              onChange={(e) => setPolyMarketId(e.target.value)}
-              placeholder="Paste market condition ID..."
-              className="w-full mt-0.5 px-2 py-1.5 rounded text-xs font-mono"
-              style={{ background: "var(--bg-primary)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>Outcome</label>
-            <div className="flex gap-1 mt-0.5">
-              {["Yes", "No"].map((o) => (
-                <button
-                  key={o}
-                  onClick={() => setPolyOutcome(o)}
-                  className="flex-1 py-1.5 rounded font-bold text-xs"
-                  style={{
-                    background: polyOutcome === o ? (o === "Yes" ? "var(--accent-green)" : "var(--accent-red)") : "var(--bg-primary)",
-                    color: polyOutcome === o ? (o === "Yes" ? "#000" : "#fff") : "var(--text-dim)",
-                    border: `1px solid ${polyOutcome === o ? (o === "Yes" ? "var(--accent-green)" : "var(--accent-red)") : "var(--border)"}`,
-                  }}
-                >
-                  {o}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
 
-      {/* Side toggle (HL / Aster only) */}
-      {exchange !== "poly" && (
-        <div className="flex gap-1">
+
+      {/* Side toggle */}
+      <div className="flex gap-1">
           <button
             onClick={() => setSide("buy")}
             className="flex-1 py-2 rounded font-bold text-xs"
@@ -175,40 +122,13 @@ export default function OrderEntryPane() {
           >
             Short / Sell
           </button>
-        </div>
-      )}
+      </div>
 
-      {/* Buy/Sell for Polymarket */}
-      {exchange === "poly" && (
-        <div className="flex gap-1">
-          <button
-            onClick={() => setSide("buy")}
-            className="flex-1 py-2 rounded font-bold text-xs"
-            style={{
-              background: side === "buy" ? "var(--accent-green)" : "var(--bg-primary)",
-              color: side === "buy" ? "#000" : "var(--text-dim)",
-              border: `1px solid ${side === "buy" ? "var(--accent-green)" : "var(--border)"}`,
-            }}
-          >
-            Buy Shares
-          </button>
-          <button
-            onClick={() => setSide("sell")}
-            className="flex-1 py-2 rounded font-bold text-xs"
-            style={{
-              background: side === "sell" ? "var(--accent-red)" : "var(--bg-primary)",
-              color: side === "sell" ? "#fff" : "var(--text-dim)",
-              border: `1px solid ${side === "sell" ? "var(--accent-red)" : "var(--border)"}`,
-            }}
-          >
-            Sell Shares
-          </button>
-        </div>
-      )}
+
 
       {/* Order type tabs */}
       <div className="flex gap-0.5 p-0.5 rounded" style={{ background: "var(--bg-primary)" }}>
-        {(exchange === "poly" ? ["Market", "Limit"] : ORDER_TYPES).map((t) => (
+        {ORDER_TYPES.map((t) => (
           <button
             key={t}
             onClick={() => setOrderType(t)}
@@ -228,14 +148,13 @@ export default function OrderEntryPane() {
       {orderType !== "Market" && (
         <div>
           <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>
-            {exchange === "poly" ? "Price (0-1)" : "Price"}
+            Price
           </label>
           <input
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder={exchange === "poly" ? "0.55" : "0.00"}
+            placeholder="0.00"
             type="number"
-            step={exchange === "poly" ? "0.01" : undefined}
             className="w-full mt-0.5 px-2 py-1.5 rounded text-xs font-mono"
             style={{ background: "var(--bg-primary)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
           />
@@ -245,7 +164,7 @@ export default function OrderEntryPane() {
       {/* Size */}
       <div>
         <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>
-          {exchange === "poly" ? "Amount (USDC)" : "Size (USD)"}
+          Size (USD)
         </label>
         <div className="flex gap-1 mt-0.5">
           <input
@@ -271,9 +190,8 @@ export default function OrderEntryPane() {
         </div>
       </div>
 
-      {/* Leverage slider (HL/Aster only) */}
-      {exchange !== "poly" && (
-        <div>
+      {/* Leverage slider */}
+      <div>
           <div className="flex justify-between">
             <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--text-dim)" }}>Leverage</label>
             <span className="text-[11px] font-mono font-bold" style={{ color: "var(--accent-cyan)" }}>{leverage}x</span>
@@ -286,8 +204,7 @@ export default function OrderEntryPane() {
           <div className="flex justify-between text-[9px] font-mono" style={{ color: "var(--text-dim)" }}>
             <span>1x</span><span>10x</span><span>25x</span><span>50x</span>
           </div>
-        </div>
-      )}
+      </div>
 
       {/* Fees info */}
       <div className="flex justify-between text-[10px] px-1" style={{ color: "var(--text-dim)" }}>
@@ -314,10 +231,7 @@ export default function OrderEntryPane() {
           opacity: submitting || !size ? 0.5 : 1,
         }}
       >
-        {submitting ? "Submitting..." : exchange === "poly"
-          ? `${side === "buy" ? "Buy" : "Sell"} ${polyOutcome} Shares`
-          : `${side === "buy" ? "Long" : "Short"} ${symbol}`
-        }
+        {submitting ? "Submitting..." : `${side === "buy" ? "Long" : "Short"} ${symbol}`}
       </button>
 
       {/* Result */}

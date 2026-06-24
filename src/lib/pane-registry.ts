@@ -3,8 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LineChart, Briefcase, ClipboardList, Target, Zap,
   ArrowLeftRight, Wallet, Search, Landmark, Bot, Shield,
-  MessageCircle, Gamepad2, BarChart3, BookOpen, ShieldCheck,
-  TrendingUp,
+  BarChart3, BookOpen, ShieldCheck,
 } from "lucide-react";
 
 // ── Pane Config ──────────────────────────────────────────────
@@ -81,12 +80,7 @@ export const PANE_REGISTRY: Record<string, PaneConfig> = {
     defaultSize: { w: 6, h: 2 }, minSize: { w: 3, h: 2 },
     tier: "free", category: "data", description: "FRED economic indicators",
   },
-  polymarket: {
-    id: "polymarket", title: "Polymarket", icon: TrendingUp,
-    component: () => import("@/panes/PolymarketPane"),
-    defaultSize: { w: 4, h: 4 }, minSize: { w: 3, h: 3 },
-    tier: "free", category: "data", description: "Prediction markets browser + prices",
-  },
+
 
   // Intelligence
   copilot: {
@@ -101,18 +95,7 @@ export const PANE_REGISTRY: Record<string, PaneConfig> = {
     defaultSize: { w: 3, h: 3 }, minSize: { w: 3, h: 2 },
     tier: "free", category: "intelligence", description: "Y2/Elfa news & sentiment feed",
   },
-  telegram: {
-    id: "telegram", title: "Telegram", icon: MessageCircle,
-    component: () => import("@/panes/TelegramPane"),
-    defaultSize: { w: 4, h: 3 }, minSize: { w: 3, h: 2 },
-    tier: "free", category: "intelligence", description: "Telegram channel monitoring",
-  },
-  discord: {
-    id: "discord", title: "Discord", icon: Gamepad2,
-    component: () => import("@/panes/DiscordPane"),
-    defaultSize: { w: 4, h: 3 }, minSize: { w: 3, h: 2 },
-    tier: "free", category: "intelligence", description: "Discord server monitoring",
-  },
+
 
   // Market Overview
   markets: {
@@ -180,14 +163,14 @@ export const DEFAULT_LAYOUTS: Record<LayoutPreset, { i: string; x: number; y: nu
   research: [
     { i: "chart", x: 0, y: 0, w: 6, h: 4 },
     { i: "copilot", x: 6, y: 0, w: 6, h: 4 },
-    { i: "polymarket", x: 0, y: 4, w: 6, h: 3 },
+    { i: "markets", x: 0, y: 4, w: 6, h: 3 },
     { i: "intel", x: 6, y: 4, w: 6, h: 3 },
   ],
   monitor: [
     { i: "positions", x: 0, y: 0, w: 6, h: 3 },
     { i: "orders", x: 6, y: 0, w: 6, h: 3 },
     { i: "trade_feed", x: 0, y: 3, w: 4, h: 3 },
-    { i: "telegram", x: 4, y: 3, w: 4, h: 3 },
-    { i: "discord", x: 8, y: 3, w: 4, h: 3 },
+    { i: "intel", x: 4, y: 3, w: 4, h: 3 },
+    { i: "copilot", x: 8, y: 3, w: 4, h: 3 },
   ],
 };
