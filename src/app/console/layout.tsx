@@ -130,7 +130,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
         }}
       >
         {/* Logo */}
-        <div className="px-4 py-4 border-b flex items-center gap-3 shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        <div className="px-4 py-4 border-b flex items-center gap-3 shrink-0 console-divider">
           <Image src="/brand/sentinel-logo.jpg" alt="Sentinel" width={28} height={28} className="rounded-lg shrink-0" />
           {!sidebarCollapsed && (
             <div className="min-w-0">
@@ -147,7 +147,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
         </div>
 
         {/* Launch Terminal Button */}
-        <div className="px-3 py-3 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        <div className="px-3 py-3 border-b shrink-0 console-divider">
           <Link
             href="/dashboard"
             className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-[1.02]"
@@ -174,7 +174,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
           {NAV_SECTIONS.map((section) => (
             <div key={section.label} className="mb-3">
               {!sidebarCollapsed && (
-                <p className="px-4 py-1 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#52525B" }}>
+                <p className="px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-dim-zinc">
                   {section.label}
                 </p>
               )}
@@ -201,8 +201,8 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
         </nav>
 
         {/* Footer */}
-        <div className="shrink-0 px-4 py-3 border-t space-y-2" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <div className="flex items-center gap-2 text-xs" style={{ color: "#52525B" }}>
+        <div className="shrink-0 px-4 py-3 border-t space-y-2 console-divider">
+          <div className="flex items-center gap-2 text-xs text-dim-zinc">
             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: health ? "#00FF88" : health === false ? "#FF4444" : "#666" }} />
             {!sidebarCollapsed && (
               <span>{health ? "API Online" : health === false ? "API Offline" : "Checking..."}</span>
@@ -210,12 +210,12 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
           </div>
           {!sidebarCollapsed && (
             <>
-              <div className="flex gap-3 text-[10px]" style={{ color: "#52525B" }}>
+              <div className="flex gap-3 text-[10px] text-dim-zinc">
                 <a href="https://api.hyper-sentinel.com/docs" target="_blank" className="hover:text-white transition">Docs ↗</a>
                 <a href="https://github.com/hyper-sentinel" target="_blank" className="hover:text-white transition">GitHub ↗</a>
                 <a href="https://pypi.org/project/hyper-sentinel" target="_blank" className="hover:text-white transition">PyPI ↗</a>
               </div>
-              <p className="text-[9px] font-mono" style={{ color: "#3F3F46" }}>
+              <p className="text-[9px] font-mono text-slate">
                 Sentinel Labs LLC · 2026
               </p>
             </>
@@ -251,6 +251,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
                     color: "#F59E0B",
                     border: "1px solid rgba(245,158,11,0.3)",
                   }}>
+
                     FREE (Limited)
                   </Link>
                 );
@@ -269,7 +270,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(139, 92, 246, 0.2)", color: "#A78BFA" }}>
                 {(user?.name?.[0] || user?.email?.[0] || "S").toUpperCase()}
               </div>
-              <button onClick={logout} className="text-xs hover:text-white transition" style={{ color: "#71717A" }}>
+              <button onClick={logout} className="text-xs hover:text-white transition text-muted-zinc">
                 Sign out
               </button>
             </div>

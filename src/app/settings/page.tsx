@@ -6,8 +6,8 @@ import { useAuth, PROVIDER_INFO } from "@/lib/auth";
 import { api } from "@/lib/api";
 import {
   Brain, Link2, Database, CreditCard, Key,
-  Lock, ShieldCheck, Zap, Star, Landmark, Wallet,
-  Satellite, Globe, MessageCircle, Hash, Radio,
+  Lock, ShieldCheck, Zap, Star, Wallet,
+  Satellite, Globe,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -46,14 +46,6 @@ const EXCHANGE_CONNECTIONS: ExchangeDefinition[] = [
     ],
   },
   {
-    id: "polymarket", name: "Polymarket", icon: Landmark, desc: "Prediction markets",
-    fields: [
-      { label: "API Key", key: "api_key", type: "text" },
-      { label: "API Secret", key: "api_secret", type: "password" },
-      { label: "Passphrase", key: "passphrase", type: "password" },
-    ],
-  },
-  {
     id: "onchain", name: "On-Chain Wallet", icon: Wallet, desc: "Direct on-chain execution",
     fields: [
       { label: "Private Key (EVM/Solana)", key: "private_key", type: "password" },
@@ -77,8 +69,6 @@ const DATA_SOURCES: DataSourceDef[] = [
   { id: "y2", name: "Y2 Intelligence", status: "active", desc: "News & sentiment", keyRequired: true, fields: [{ label: "API Key", key: "api_key" }] },
   { id: "elfa", name: "Elfa AI", status: "active", desc: "Social analytics", keyRequired: true, fields: [{ label: "API Key", key: "api_key" }] },
   { id: "x", name: "X / Twitter", status: "inactive", desc: "Social search", keyRequired: true, fields: [{ label: "API Key", key: "api_key" }, { label: "API Secret", key: "api_secret" }] },
-  { id: "telegram", name: "Telegram", status: "inactive", desc: "Channel monitoring", keyRequired: true, fields: [{ label: "API ID", key: "api_id" }, { label: "API Hash", key: "api_hash" }] },
-  { id: "discord", name: "Discord", status: "active", desc: "Server integration", keyRequired: true, fields: [{ label: "Bot Token", key: "bot_token" }] },
 ];
 
 interface APIKeyInfo {
@@ -396,7 +386,7 @@ export default function SettingsPage() {
                 </div>
 
                 <p className="text-xs" style={{ color: "var(--text-dim)" }}>
-                  Your AI key is stored locally in your browser. It&apos;s used to power the agent chat, autonomous monitors, and strategy decisions. Change provider anytime.
+                  Your AI key is stored locally in your browser. It&apos;s used to power the agent chat and autonomous monitors. Change provider anytime.
                 </p>
 
                 <div className="grid grid-cols-4 gap-2">
