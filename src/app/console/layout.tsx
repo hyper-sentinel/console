@@ -243,7 +243,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
               </span>
             </div>
             {(() => {
-              const isGated = billingStatus?.gated === true || ((billingStatus?.prompts_used ?? 0) >= (billingStatus?.prompt_limit ?? 10));
+              const isGated = billingStatus?.gated === true;
               if (isGated) {
                 return (
                   <Link href="/console/billing" className="text-[11px] px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-80" style={{

@@ -34,7 +34,7 @@ export default function ConsoleDashboard() {
   const rateLimit = String(billing?.rate_limit_per_min || 1000);
   const promptsUsed = billing?.prompts_used != null ? Number(billing.prompts_used) : null;
   const promptLimit = billing?.prompt_limit != null ? Number(billing.prompt_limit) : 10;
-  const isGated = billing?.gated === true || (promptsUsed != null && promptsUsed >= promptLimit);
+  const isGated = billing?.gated === true;
   const promptsResetsAt = billing?.resets_at ? new Date(billing.resets_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
 
   return (
