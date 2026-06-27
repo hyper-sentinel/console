@@ -131,14 +131,12 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
       >
         {/* Logo */}
         <div className="px-4 py-4 border-b flex items-center gap-3 shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <a href="https://hyper-sentinel.com" className="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity" title="Back to hyper-sentinel.com">
-            <Image src="/brand/sentinel-logo.jpg" alt="Sentinel" width={28} height={28} className="rounded-lg shrink-0" />
-            {!sidebarCollapsed && (
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-white truncate">Sentinel Console</p>
-              </div>
-            )}
-          </a>
+          <Image src="/brand/sentinel-logo.jpg" alt="Sentinel" width={28} height={28} className="rounded-lg shrink-0" />
+          {!sidebarCollapsed && (
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white truncate">Sentinel Console</p>
+            </div>
+          )}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="ml-auto text-xs opacity-50 hover:opacity-100 transition shrink-0"
@@ -148,30 +146,27 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
           </button>
         </div>
 
-        {/* Trading terminal — web app NOT live yet. Non-navigating "coming soon" state
-            (the /dashboard terminal isn't shipped as a web app); nudge users to the CLI. */}
+        {/* Launch Terminal Button */}
         <div className="px-3 py-3 border-b shrink-0" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-          <a
-            href="https://pypi.org/project/hyper-sentinel/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all hover:border-purple-500/30"
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-[1.02]"
             style={{
-              background: "rgba(139,92,246,0.08)",
-              border: "1px solid rgba(139,92,246,0.2)",
-              color: "#A78BFA",
+              background: "linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,229,255,0.1))",
+              border: "1px solid rgba(0,255,136,0.2)",
+              color: "#00FF88",
             }}
-            title="Install the Sentinel CLI: pip install hyper-sentinel"
+            title="Open Trading Terminal"
           >
             {!sidebarCollapsed ? (
               <>
                 <Play size={14} />
-                <span className="font-mono text-xs">pip install hyper-sentinel</span>
+                <span>Launch Terminal</span>
               </>
             ) : (
               <Play size={14} />
             )}
-          </a>
+          </Link>
         </div>
 
         {/* Nav Sections */}
@@ -248,11 +243,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
               </span>
             </div>
             {(() => {
-              // Trust the gateway's `gated` field — it already accounts for active
-              // payment status (gated == paymentStatus != "active"). Do NOT re-derive
-              // from prompt counts, which wrongly brands a paying user "FREE (Limited)"
-              // when their stale prompt count exceeds the free limit.
-              const isGated = billingStatus?.gated === true;
+              const isGated = billingStatus?.gated === true || ((billingStatus?.prompts_used ?? 0) >= (billingStatus?.prompt_limit ?? 10));
               if (isGated) {
                 return (
                   <Link href="/console/billing" className="text-[11px] px-2 py-0.5 rounded-full font-semibold transition-opacity hover:opacity-80" style={{

@@ -725,6 +725,24 @@ export default function CopilotPane() {
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const modelDropdownRef = useRef<HTMLDivElement>(null);
 
+  // ── Free-tier prompt counter ────────────────────────────────
+  // Seeded from billing/status on mount; updated from response headers after each chat call.
+  const [promptsUsed, setPromptsUsed] = useState<number | null>(null);
+  const [promptLimit, setPromptLimit] = useState<number>(10);
+  const [promptsGated, setPromptsGated] = useState(false);
+
+  useEffect(() => {
+    // Fetch initial billing status to populate the counter before first chat call.
+    // Runs once on mount; subsequent updates come from X-Sentinel-Prompts-Used response headers.
+    api.getBillingStatus().then((b) => {
+      if (b.prompt_limit > 0) {
+        setPromptsUsed(b.prompts_used);
+        setPromptLimit(b.prompt_limit);
+        setPromptsGated(b.gated === true);
+      }
+    }).catch(() => {});
+  }, []);
+
   // Close model dropdown on outside click
   useEffect(() => {
     if (!showModelDropdown) return;
@@ -1094,10 +1112,24 @@ export default function CopilotPane() {
           body: JSON.stringify({ messages: history, ai_key: aiKey, provider: gatewayProvider, model }),
         });
 
+        // Read prompt-counter headers from every chat response (200 or 402)
+        // Gateway sends X-Sentinel-Prompts-Used / X-Sentinel-Prompts-Limit on all chat calls.
+        const hUsed = res.headers.get("X-Sentinel-Prompts-Used");
+        const hLimit = res.headers.get("X-Sentinel-Prompts-Limit");
+        if (hUsed !== null) {
+          const used = parseInt(hUsed, 10);
+          const limit = hLimit !== null ? parseInt(hLimit, 10) : promptLimit;
+          if (!isNaN(used)) setPromptsUsed(used);
+          if (!isNaN(limit)) setPromptLimit(limit);
+        }
+
         if (!res.ok) {
           const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
           // 402 quota exceeded — attach quota data so outer catch can render CTA
           if (res.status === 402) {
+            if (err.prompts_used != null) setPromptsUsed(err.prompts_used);
+            if (err.prompt_limit != null) setPromptLimit(err.prompt_limit);
+            setPromptsGated(true);
             const quotaErr = Object.assign(new Error(err.message || "quota_exceeded"), {
               status: 402,
               quotaData: err,
@@ -1309,6 +1341,27 @@ export default function CopilotPane() {
           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: "rgba(0,255,136,0.08)", color: "#00FF88", border: "1px solid rgba(0,255,136,0.15)" }}>
             {user?.provider?.toUpperCase() || "AI"}
           </span>
+          {/* Free-tier prompt counter — visible until user adds payment */}
+          {promptsUsed !== null && (
+            promptsGated ? (
+              <a
+                href="/console/billing"
+                className="text-[9px] font-mono px-2 py-0.5 rounded font-semibold"
+                style={{ background: "rgba(245,158,11,0.12)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.3)", textDecoration: "none" }}
+                title="Free tier limit reached — add a payment method to continue"
+              >
+                {promptLimit - promptsUsed < 0 ? 0 : promptLimit - promptsUsed}/{promptLimit} prompts
+              </a>
+            ) : (
+              <span
+                className="text-[9px] font-mono px-2 py-0.5 rounded"
+                style={{ background: "rgba(255,255,255,0.04)", color: "#52525B", border: "1px solid rgba(255,255,255,0.06)" }}
+                title={`Free tier · ${promptLimit - promptsUsed} of ${promptLimit} prompts left this week`}
+              >
+                {promptLimit - promptsUsed}/{promptLimit} left
+              </span>
+            )
+          )}
         </div>
         <div className="flex items-center gap-1">
           {/* Model selector */}

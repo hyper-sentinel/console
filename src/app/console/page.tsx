@@ -34,9 +34,7 @@ export default function ConsoleDashboard() {
   const rateLimit = String(billing?.rate_limit_per_min || 1000);
   const promptsUsed = billing?.prompts_used != null ? Number(billing.prompts_used) : null;
   const promptLimit = billing?.prompt_limit != null ? Number(billing.prompt_limit) : 10;
-  // Trust the gateway's `gated` field (== paymentStatus != "active"). Re-deriving from the
-  // prompt count wrongly shows "14/10 · Add payment method" to a paying customer.
-  const isGated = billing?.gated === true;
+  const isGated = billing?.gated === true || (promptsUsed != null && promptsUsed >= promptLimit);
   const promptsResetsAt = billing?.resets_at ? new Date(billing.resets_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
 
   return (
@@ -153,19 +151,14 @@ export default function ConsoleDashboard() {
       <div className="stagger-4">
         <h2 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#52525B" }}>Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Trading terminal — web app NOT live yet. Non-navigating "coming soon" card
-              that points users to the working product (the CLI). */}
-          <div className="console-card rounded-xl p-6 md:col-span-1 cursor-default"
-            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)" }}
-            title="Web terminal coming soon — use the CLI: pip install hyper-sentinel">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-2xl" style={{ color: "#52525B" }}><Play size={24} /></div>
-              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold" style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA" }}>COMING SOON</span>
-            </div>
-            <p className="text-sm font-semibold mb-1" style={{ color: "#A1A1AA" }}>Trading Terminal</p>
-            <p className="text-xs" style={{ color: "#71717A" }}>Web app not live yet — use the CLI:</p>
-            <code className="inline-block mt-2 text-[11px] px-2 py-1 rounded font-mono" style={{ background: "#0A0A0B", color: "#00FF88", border: "1px solid rgba(255,255,255,0.06)" }}>pip install hyper-sentinel</code>
-          </div>
+          {/* Launch Terminal — Hero Card */}
+          <Link href="/dashboard" className="group console-card console-card-interactive rounded-xl p-6 md:col-span-1"
+            style={{ background: "linear-gradient(135deg, rgba(0,255,136,0.04), rgba(0,229,255,0.04))", border: "1px solid rgba(0,255,136,0.15)" }}>
+            <div className="text-2xl mb-3" style={{ color: "#00FF88" }}><Play size={24} /></div>
+            <p className="text-sm font-semibold group-hover:text-green-300 transition mb-1" style={{ color: "#00FF88" }}>Launch Terminal</p>
+            <p className="text-xs" style={{ color: "#71717A" }}>Open the trading dashboard</p>
+            <span className="inline-block mt-3 text-xs" style={{ color: "#52525B" }}>↗</span>
+          </Link>
 
           <Link href="/console/api-keys" className="group console-card console-card-interactive rounded-xl p-6">
             <div className="text-2xl mb-3" style={{ color: "#A78BFA" }}><KeyRound size={24} /></div>
