@@ -215,15 +215,6 @@ Aster DEX (wallet required):
   aster_set_leverage — params: {symbol: "BTCUSDT", leverage: 10} — set leverage
   aster_diagnose — no params — connection check
 
-Polymarket (wallet required):
-  get_polymarket_markets — params: {limit: 10} — browse prediction markets
-  search_polymarket — params: {query: "..."} — search markets
-  get_polymarket_positions — no params — open positions
-  buy_polymarket — params: {token_id: "...", amount: 10} — buy shares
-  sell_polymarket — params: {token_id: "...", amount: 10} — sell shares
-  get_polymarket_price — params: {token_id: "..."} — current price/odds
-  get_polymarket_orderbook — params: {token_id: "..."} — orderbook
-
 Intelligence (no wallet needed):
   get_news_sentiment — params: {query: "..."} — sentiment analysis for a topic
   get_news_recap — no params — AI news summary
@@ -240,19 +231,6 @@ Macro (no wallet needed):
   get_fred_series — params: {series_id: "DGS10", limit: 10} — specific FRED data
   search_fred — params: {query: "..."} — search FRED datasets
 
-Telegram:
-  tg_read_channel — params: {channel: "...", limit: 10} — read channel messages
-  tg_list_channels — no params — list available channels
-  tg_send_message — params: {channel: "...", message: "..."} — send message
-  tg_search_messages — params: {query: "...", channel: "..."} — search messages
-
-Discord:
-  discord_list_guilds — no params — list connected servers
-  discord_read_channel — params: {channel_id: 123, limit: 50} — read messages
-  discord_send_message — params: {channel_id: 123, message: "..."} — send message
-  discord_search_messages — params: {query: "...", channel_id: 123} — search messages
-  discord_list_channels — params: {guild_id: 123} — list server channels
-
 
 `;
 
@@ -262,7 +240,6 @@ function buildSystemPrompt(hasWallets: boolean): string {
     : `IMPORTANT: Exchange wallets are NOT configured yet. If the user tries to trade or check positions/balances, tell them to go to Settings > Exchanges to configure:
   - Hyperliquid (wallet address + private key)
   - Aster DEX (API key + API secret)
-  - Polymarket (API key + API secret + passphrase)
 Data tools (prices, news, sentiment, macro) work without wallets.`;
 
   return `You are Sentinel, a production-grade AI trading agent built by Sentinel Labs.
@@ -275,7 +252,7 @@ CAPABILITIES:
 - DEX data (DexScreener — pairs, trending tokens, on-chain analytics)
 - Social intelligence (X/Twitter search, Elfa AI trending, Y2 news)
 - Technical analysis (SMA, EMA, RSI, MACD, Bollinger Bands for any asset)
-- DEX trading (Hyperliquid perps, Aster futures, Polymarket predictions)
+- DEX trading (Hyperliquid perps, Aster futures)
 - TradFi perps on Hyperliquid (GOLD, SILVER, OIL, TSLA, SP500, NVDA, 50+ more)
 - On-chain swaps (Jupiter SOL, Uniswap ETH)
 - Wallet management (generate, import, balance, send)
@@ -599,17 +576,7 @@ function formatToolResult(tool: string, data: unknown): string {
       }
     }
 
-    // Polymarket markets
-    if (tool === "get_polymarket_markets") {
-      const markets = (d.data || d.markets || d) as Record<string, unknown>[];
-      if (Array.isArray(markets)) {
-        let md = `| Market | Volume | End Date |\n|---|---|---|\n`;
-        for (const m of markets.slice(0, 10)) {
-          md += `| ${String(m.question || m.title || "?").slice(0, 60)} | $${Number(m.volume || 0).toLocaleString()} | ${m.end_date || "?"} |\n`;
-        }
-        return md;
-      }
-    }
+
 
     // Fallback: pretty JSON
     const str = typeof data === "string" ? data : JSON.stringify(data, null, 2);
@@ -644,13 +611,7 @@ function detectDirectTool(text: string): DirectRoute[] | null {
     routes.push({ tool: "aster_balance", params: {}, label: "Aster Balance" });
   }
 
-  // Polymarket
-  if (/(polymarket|poly)\s*(position|pos|market)/i.test(lower) || lower === "get polymarket") {
-    routes.push({ tool: "get_polymarket_positions", params: {}, label: "Polymarket Positions" });
-  }
-  if (/(polymarket|poly)\s*(browse|list|trending)/i.test(lower)) {
-    routes.push({ tool: "get_polymarket_markets", params: {}, label: "Polymarket Markets" });
-  }
+
 
   // All positions
   if (/(all|my)\s*(position|portfolio|balance)/i.test(lower) || lower === "positions" || lower === "portfolio") {
@@ -696,9 +657,7 @@ function detectDirectTool(text: string): DirectRoute[] | null {
   const tradfiMatch = lower.match(/(?:hl|hyperliquid)\s*(?:price|quote)\s+(\w+)/i);
   if (tradfiMatch) routes.push({ tool: "get_hl_tradfi_price", params: { coin: tradfiMatch[1].toUpperCase() }, label: `HL TradFi: ${tradfiMatch[1].toUpperCase()}` });
 
-  // Search polymarket
-  const polySearch = lower.match(/(?:polymarket|poly)\s*search\s+(.+)/i);
-  if (polySearch) routes.push({ tool: "search_polymarket", params: { query: polySearch[1] }, label: "Polymarket Search" });
+
 
   // Intelligence reports
   if (/(intelligence|report|intel)\s*(report)?/i.test(lower)) {
@@ -783,8 +742,8 @@ export default function CopilotPane() {
     const provider = user?.provider?.toUpperCase() || "AI";
     const wallets = checkWallets();
     const welcome = wallets
-      ? `Sentinel online · 69 tools armed · ${provider}\n\nI have access to live market data, can execute trades on **Hyperliquid**, **Aster DEX**, and **Polymarket**, and monitor social intelligence feeds.\n\n**Commands:**\n\`add hl\` — Configure Hyperliquid\n\`add aster\` — Configure Aster DEX\n\`add polymarket\` — Configure Polymarket\n\`status\` — Show connections\n\`help\` — All commands\n\nOr just ask me anything.`
-      : `Welcome to Sentinel · ${provider}\n\nI'm your autonomous trading agent with 69 tools. Configure your exchanges to unlock trading:\n\n\`add hl\` — Hyperliquid DEX (wallet address + private key)\n\`add aster\` — Aster DEX (API key + secret)\n\`add polymarket\` — Polymarket (API key + secret + passphrase)\n\n**Data commands (no setup needed):**\n\`add y2\` — Y2 news intelligence\n\`add fred\` — FRED economic data\n\`add elfa\` — Elfa AI social mentions\n\`status\` — Show all connections\n\`help\` — All commands\n\nMeanwhile, I can fetch live prices, news, trending tokens, macro data, and social intelligence.`;
+      ? `Sentinel online · 69 tools armed · ${provider}\n\nI have access to live market data, can execute trades on **Hyperliquid** and **Aster DEX**, and monitor social intelligence feeds.\n\n**Commands:**\n\`add hl\` — Configure Hyperliquid\n\`add aster\` — Configure Aster DEX\n\`status\` — Show connections\n\`help\` — All commands\n\nOr just ask me anything.`
+      : `Welcome to Sentinel · ${provider}\n\nI'm your autonomous trading agent with 69 tools. Configure your exchanges to unlock trading:\n\n\`add hl\` — Hyperliquid DEX (wallet address + private key)\n\`add aster\` — Aster DEX (API key + secret)\n\n**Data commands (no setup needed):**\n\`add y2\` — Y2 news intelligence\n\`add fred\` — FRED economic data\n\`add elfa\` — Elfa AI social mentions\n\`status\` — Show all connections\n\`help\` — All commands\n\nMeanwhile, I can fetch live prices, news, trending tokens, macro data, and social intelligence.`;
 
     setMessages([{ id: genId(), role: "assistant", content: welcome, timestamp: ts() }]);
   }, [user, checkWallets]);
@@ -832,12 +791,12 @@ export default function CopilotPane() {
 
     // help command
     if (lower === "help" || lower === "/help") {
-      return `**Sentinel Commands:**\n\n**Exchange Setup:**\n\`add hl\` — Configure Hyperliquid (wallet + private key)\n\`add aster\` — Configure Aster DEX (API key + secret)\n\`add polymarket\` — Configure Polymarket (key + secret + passphrase)\n\n**Data Sources:**\n\`add y2\` — Y2 news sentiment\n\`add fred\` — FRED economic data (GDP, CPI, rates)\n\`add elfa\` — Elfa AI social mentions\n\n**System:**\n\`status\` — Show all connections\n\`tools\` — List all available tools\n\`clear\` — Clear chat history\n\`help\` — Show this help\n\nOr just ask me anything — I'll use the right tools automatically.`;
+      return `**Sentinel Commands:**\n\n**Exchange Setup:**\n\`add hl\` — Configure Hyperliquid (wallet + private key)\n\`add aster\` — Configure Aster DEX (API key + secret)\n\n**Data Sources:**\n\`add y2\` — Y2 news sentiment\n\`add fred\` — FRED economic data (GDP, CPI, rates)\n\`add elfa\` — Elfa AI social mentions\n\n**System:**\n\`status\` — Show all connections\n\`tools\` — List all available tools\n\`clear\` — Clear chat history\n\`help\` — Show this help\n\nOr just ask me anything — I'll use the right tools automatically.`;
     }
 
     // tools command
     if (lower === "tools" || lower === "/tools") {
-      return `**Available Tools (69)**\n\n| Category | Tools |\n|---|---|\n| **Crypto** | get_crypto_price, get_crypto_top_n, get_crypto_batch_prices, search_crypto, get_crypto_chart |\n| **Stocks** | get_stock_price |\n| **Hyperliquid** | get_hl_positions, get_hl_account_info, get_hl_orderbook, get_hl_open_orders, get_hl_config, place_hl_order, close_hl_position, cancel_hl_order, get_hl_tradfi_assets, get_hl_tradfi_price |\n| **Aster DEX** | aster_ticker, aster_positions, aster_balance, aster_orderbook, aster_klines, aster_funding_rate, aster_exchange_info, aster_account_info, aster_open_orders, aster_place_order, aster_cancel_order, aster_cancel_all_orders, aster_set_leverage, aster_diagnose, aster_ping |\n| **Polymarket** | get_polymarket_markets, search_polymarket, get_polymarket_positions, buy_polymarket, sell_polymarket, get_polymarket_price, get_polymarket_orderbook, place_polymarket_limit, cancel_polymarket_order, cancel_all_polymarket_orders |\n| **Intelligence** | get_news_sentiment, get_news_recap, get_intelligence_reports, get_report_detail, get_trending_tokens, get_top_mentions, search_mentions, get_trending_narratives, get_token_news, search_x |\n| **Macro** | get_economic_dashboard, get_fred_series, search_fred |\n| **Telegram** | tg_read_channel, tg_list_channels, tg_send_message, tg_search_messages |\n| **Discord** | discord_list_guilds, discord_read_channel, discord_send_message, discord_search_messages, discord_list_channels |`;
+      return `**Available Tools (69)**\n\n| Category | Tools |\n|---|---|\n| **Crypto** | get_crypto_price, get_crypto_top_n, get_crypto_batch_prices, search_crypto, get_crypto_chart |\n| **Stocks** | get_stock_price |\n| **Hyperliquid** | get_hl_positions, get_hl_account_info, get_hl_orderbook, get_hl_open_orders, get_hl_config, place_hl_order, close_hl_position, cancel_hl_order, get_hl_tradfi_assets, get_hl_tradfi_price |\n| **Aster DEX** | aster_ticker, aster_positions, aster_balance, aster_orderbook, aster_klines, aster_funding_rate, aster_exchange_info, aster_account_info, aster_open_orders, aster_place_order, aster_cancel_order, aster_cancel_all_orders, aster_set_leverage, aster_diagnose, aster_ping |\n| **Intelligence** | get_news_sentiment, get_news_recap, get_intelligence_reports, get_report_detail, get_trending_tokens, get_top_mentions, search_mentions, get_trending_narratives, get_token_news, search_x |\n| **Macro** | get_economic_dashboard, get_fred_series, search_fred |`;
     }
 
     // status command
@@ -852,7 +811,7 @@ export default function CopilotPane() {
             const vault = await decryptVault(encrypted_blob, nonce, sk);
             if (vault.exchanges?.hl?.wallet_address) exchanges.push("- **Hyperliquid** — " + (vault.exchanges.hl.private_key ? "Trading enabled" : "Read-only"));
             if (vault.exchanges?.aster?.api_key) exchanges.push("- **Aster DEX** — Connected");
-            if (vault.exchanges?.polymarket?.api_key) exchanges.push("- **Polymarket** — Connected");
+
             if (vault.data_sources?.fred?.api_key) exchanges.push("- **FRED** — Connected");
             if (vault.data_sources?.y2?.api_key) exchanges.push("- **Y2 Intelligence** — Connected");
             if (vault.data_sources?.elfa?.api_key) exchanges.push("- **Elfa AI** — Connected");
@@ -866,7 +825,7 @@ export default function CopilotPane() {
       const notConfigured = [];
       if (!exchanges.some(e => e.includes("Hyperliquid"))) notConfigured.push("- Hyperliquid — \`add hl\`");
       if (!exchanges.some(e => e.includes("Aster"))) notConfigured.push("- Aster DEX — \`add aster\`");
-      if (!exchanges.some(e => e.includes("Polymarket"))) notConfigured.push("- Polymarket — \`add polymarket\`");
+
 
       return `**Sentinel Status**\n\n**LLM Provider:** ${provider}\n\n**Connected:**\n${allSources.join("\n")}\n${notConfigured.length > 0 ? `\n**Not configured:**\n${notConfigured.join("\n")}` : "\nAll exchanges configured."}`;
     }
@@ -879,18 +838,17 @@ export default function CopilotPane() {
 
     // add command — show available services
     if (lower === "add") {
-      return `**Available integrations:**\n\n**Exchanges (trading):**\n\`add hl\` — Hyperliquid DEX (wallet + private key)\n\`add aster\` — Aster DEX (API key + secret)\n\`add polymarket\` — Polymarket (API key + secret + passphrase)\n\n**Market Data:**\n\`add eodhd\` — Stocks, options chains, fundamentals\n\`add coingecko\` — CoinGecko Pro (optional, free works)\n\n**Intelligence:**\n\`add y2\` — Y2 news sentiment\n\`add fred\` — FRED economic data (GDP, CPI, rates)\n\`add elfa\` — Elfa AI social mentions\n\`add x\` — X/Twitter bearer token\n\nAll keys are encrypted locally with your secret key. We never see them.`;
+      return `**Available integrations:**\n\n**Exchanges (trading):**\n\`add hl\` — Hyperliquid DEX (wallet + private key)\n\`add aster\` — Aster DEX (API key + secret)\n\n**Market Data:**\n\`add eodhd\` — Stocks, options chains, fundamentals\n\`add coingecko\` — CoinGecko Pro (optional, free works)\n\n**Intelligence:**\n\`add y2\` — Y2 news sentiment\n\`add fred\` — FRED economic data (GDP, CPI, rates)\n\`add elfa\` — Elfa AI social mentions\n\`add x\` — X/Twitter bearer token\n\nAll keys are encrypted locally with your secret key. We never see them.`;
     }
 
     // add <exchange> commands — trigger the pending form state
-    const addMatch = lower.match(/^add\s+(hl|hyperliquid|aster|polymarket|y2|fred|elfa|x|twitter|eodhd|yahoo|coingecko)$/);
+    const addMatch = lower.match(/^add\s+(hl|hyperliquid|aster|y2|fred|elfa|x|twitter|eodhd|yahoo|coingecko)$/);
     if (addMatch) {
       const service = addMatch[1];
       const serviceMap: Record<string, { label: string; fields: { key: string; label: string; placeholder: string; secret?: boolean }[]; url: string; vaultPath: string }> = {
         hl: { label: "Hyperliquid", url: "app.hyperliquid.xyz", vaultPath: "exchanges.hl", fields: [{ key: "wallet_address", label: "Wallet address", placeholder: "0x..." }, { key: "private_key", label: "Private key", placeholder: "0x... (for trading)", secret: true }] },
         hyperliquid: { label: "Hyperliquid", url: "app.hyperliquid.xyz", vaultPath: "exchanges.hl", fields: [{ key: "wallet_address", label: "Wallet address", placeholder: "0x..." }, { key: "private_key", label: "Private key", placeholder: "0x... (for trading)", secret: true }] },
         aster: { label: "Aster DEX", url: "asterdex.com", vaultPath: "exchanges.aster", fields: [{ key: "api_key", label: "API key", placeholder: "Your Aster API key" }, { key: "api_secret", label: "API secret", placeholder: "Your Aster secret", secret: true }] },
-        polymarket: { label: "Polymarket", url: "polymarket.com", vaultPath: "exchanges.polymarket", fields: [{ key: "api_key", label: "API key", placeholder: "Your Polymarket API key" }, { key: "api_secret", label: "API secret", placeholder: "Your secret", secret: true }, { key: "passphrase", label: "Passphrase", placeholder: "Your passphrase", secret: true }] },
         y2: { label: "Y2 Intelligence", url: "y2.finance", vaultPath: "data_sources.y2", fields: [{ key: "api_key", label: "API key", placeholder: "Your Y2 API key" }] },
         fred: { label: "FRED", url: "fred.stlouisfed.org/docs/api/api_key.html", vaultPath: "data_sources.fred", fields: [{ key: "api_key", label: "API key", placeholder: "Your FRED API key" }] },
         elfa: { label: "Elfa AI", url: "elfa.ai", vaultPath: "data_sources.elfa", fields: [{ key: "api_key", label: "API key", placeholder: "Your Elfa API key" }] },

@@ -292,21 +292,6 @@ export function useBillingHistory() {
   });
 }
 
-export function useUSDCBalance() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return useQuery<Record<string, any>>({
-    queryKey: ["billing", "usdc"],
-    queryFn: () => api.getUSDCBalance() as any,
-    staleTime: 30000,
-  });
-}
-
-export function useRegisterUSDCWallet() {
-  return useMutation({
-    mutationFn: (walletAddress: string) => api.registerUSDCWallet(walletAddress),
-  });
-}
-
 export function useSubscribe() {
   const queryClient = useQueryClient();
   return useMutation({

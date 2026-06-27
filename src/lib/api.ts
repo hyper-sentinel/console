@@ -240,7 +240,7 @@ class SentinelAPI {
   }
 
   // ═══════════════════════════════════════════════════════════
-  //  BILLING — Stripe + USDC
+  //  BILLING — Stripe
   // ═══════════════════════════════════════════════════════════
 
   async getBillingStatus(): Promise<BillingStatus> {
@@ -268,16 +268,6 @@ class SentinelAPI {
     });
   }
 
-  async getUSDCBalance() {
-    return this.fetchJSON("/api/v1/billing/usdc/balance");
-  }
-
-  async registerUSDCWallet(walletAddress: string) {
-    return this.fetchJSON("/api/v1/billing/usdc/register-wallet", {
-      method: "POST",
-      body: JSON.stringify({ wallet_address: walletAddress }),
-    });
-  }
 
   // ═══════════════════════════════════════════════════════════
   //  LLM CHAT — Multi-provider AI
