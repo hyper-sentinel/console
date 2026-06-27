@@ -10,7 +10,6 @@
  *   exchanges: {
  *     hl: { wallet_address: "...", private_key: "..." },
  *     aster: { api_key: "...", api_secret: "..." },
- *     polymarket: { api_key: "...", api_secret: "...", passphrase: "..." },
  *     onchain: { private_key: "..." },
  *   },
  *   data_sources: {
@@ -18,8 +17,6 @@
  *     y2: { api_key: "..." },
  *     elfa: { api_key: "..." },
  *     x: { api_key: "...", api_secret: "..." },
- *     telegram: { api_id: "...", api_hash: "..." },
- *     discord: { bot_token: "..." },
  *   }
  * }
  */
@@ -33,7 +30,6 @@ export interface VaultConfig {
   exchanges: {
     hl?: { wallet_address?: string; private_key?: string };
     aster?: { api_key?: string; api_secret?: string };
-    polymarket?: { api_key?: string; api_secret?: string; passphrase?: string };
     onchain?: { private_key?: string };
   };
   data_sources: {
@@ -41,8 +37,6 @@ export interface VaultConfig {
     y2?: { api_key?: string };
     elfa?: { api_key?: string };
     x?: { api_key?: string; api_secret?: string };
-    telegram?: { api_id?: string; api_hash?: string };
-    discord?: { bot_token?: string };
   };
 }
 

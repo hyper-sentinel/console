@@ -11,7 +11,7 @@ export interface Position {
   unrealizedPnl: number;
   liquidationPrice?: number;
   leverage?: number;
-  venue: "hyperliquid" | "aster" | "polymarket";
+  venue: "hyperliquid" | "aster";
 }
 
 export interface HLPosition {
@@ -33,18 +33,11 @@ export interface AsterPosition {
   positionSide: string;
 }
 
-export interface PolymarketPosition {
-  market: string;
-  outcome: string;
-  size: number;
-  avgPrice: number;
-  currentPrice: number;
-}
 
 // ── Orders ──
 
 export interface OrderParams {
-  venue: "hyperliquid" | "aster" | "polymarket";
+  venue: "hyperliquid" | "aster";
   coin: string;
   side: "buy" | "sell";
   size: number;
@@ -111,7 +104,7 @@ export interface AuthState {
 }
 
 export type AuthProvider = "claude" | "gpt" | "gemini" | "grok";
-export type Chain = "SOL" | "ETH" | "HL" | "ASTER" | "POLY";
+export type Chain = "SOL" | "ETH" | "HL" | "ASTER";
 
 // ── Pane System ──
 
@@ -129,9 +122,6 @@ export type PaneId =
   | "orderbook"
   | "copilot"
   | "intel"
-  | "telegram"
-  | "discord"
-  | "strategy"
   | "account";
 
 export interface PaneConfig {
@@ -162,19 +152,6 @@ export interface TrendingToken {
   mentions?: number;
 }
 
-// ── Polymarket ──
-
-export interface PolymarketMarket {
-  title?: string;
-  question?: string;
-  volume?: string | number;
-  yes_price?: number;
-  no_price?: number;
-  outcome_yes?: string;
-  outcome_no?: string;
-  condition_id?: string;
-  [key: string]: unknown;
-}
 
 // ── Billing ──
 
