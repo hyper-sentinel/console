@@ -11,7 +11,7 @@ const SECTIONS = [
     content: [
       {
         heading: "What is Sentinel?",
-        text: "Sentinel is an autonomous AI trading terminal that unifies Hyperliquid and Aster DEX under one interface. Bring your own LLM key (Claude, GPT, Gemini, Grok) and the AI agent executes trades and runs quant analysis using 69 backend tools.",
+        text: "Sentinel is an autonomous AI trading terminal that unifies Hyperliquid and Aster DEX under one interface. Bring your own LLM key (Claude, GPT, Gemini, Grok) and the AI agent executes trades and runs quant analysis using 75 backend tools.",
       },
       {
         heading: "Quick Start",
@@ -85,7 +85,7 @@ clear           Clear chat history`,
   },
   {
     id: "tools",
-    title: "Tools (69)",
+    title: "Tools (75)",
     content: [
       {
         heading: "Trading",
@@ -144,7 +144,7 @@ get_fred_series · search_fred — FRED economic data`,
         heading: "Interactive Terminal",
         code: `$ sentinel
 
-Sentinel v0.8.8 · 69 tools · Online
+Sentinel v0.9.11 · 75 tools · Online
 > What's the BTC price?
 BTC $66,857.00 (-0.85%) · Vol $28.4B · MCap $1.32T
 
@@ -221,7 +221,7 @@ const PRICING_TIERS = [
     name: "Pay-as-you-go",
     price: "20%",
     period: "LLM markup",
-    features: ["All 69 tools · 8 providers", "No subscriptions · no tiers", "0.01% maker / 0.01% taker", "1,000 req/min", "Billed monthly via Stripe"],
+    features: ["All 75 tools · 8 providers", "No subscriptions · no tiers", "0.01% maker / 0.01% taker", "1,000 req/min", "Billed monthly via Stripe"],
     accent: "var(--accent-purple)",
     highlight: true,
   },
@@ -303,7 +303,7 @@ export default function DocsPage() {
             </h1>
             <p className="text-sm leading-relaxed max-w-xl" style={{ color: "var(--text-secondary)" }}>
               Everything you need to build with the Sentinel trading terminal.
-              69 tools, 2 trading venues, 8 LLM providers, one API.
+              75 tools, 2 trading venues, 8 LLM providers, one API.
             </p>
             <div className="flex gap-2 pt-2">
               <Link
